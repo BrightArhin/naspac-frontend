@@ -23,12 +23,14 @@ const programsStudied = [
   'Accounting',
   'Agriculture',
   'Economics',
+  'Others',
 ];
 
 const OnboardingForm: React.FC = () => {
   const { role } = useAuth();
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const programStudied = Form.useWatch('programStudied', form);
   const [universities, setUniversities] = useState<University[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [canSubmit, setCanSubmit] = useState(false);
@@ -154,19 +156,33 @@ const OnboardingForm: React.FC = () => {
     formData.append('universityAttended', values.universityAttended);
     formData.append('regionOfSchool', values.regionOfSchool);
     formData.append('yearOfNss', values.yearOfNss);
-    formData.append('programStudied', values.programStudied);
+    const program =
+      values.programStudied === 'Others' ? values.otherProgram?.trim() : values.programStudied;
+    if (!program) {
+      toast.error('Please enter your course.');
+      setIsLoading(false);
+      return;
+    }
+    formData.append('programStudied', program);
     formData.append('divisionPostedTo', values.divisionPostedTo);
 
-    if (values.postingLetter) {
-    formData.append('files', values.postingLetter, 'postingLetter');
-  } else {
-    console.log('No postingLetter file found');
-  }
-   if (values.appointmentLetter) {
-    formData.append('files', values.appointmentLetter, 'appointmentLetter');
-  } else {
-    console.log('No appointmentLetter file found');
-  }
+    const letter = values.postingAppointmentLetter?.originFileObj || values.postingAppointmentLetter;
+    if (!letter) {
+      toast.error('Please upload your posting and appointment letter.');
+      setIsLoading(false);
+      return;
+    }
+    if (letter.type !== 'application/pdf' && !letter.name?.toLowerCase().endsWith('.pdf')) {
+      toast.error('Only PDF files are allowed.');
+      setIsLoading(false);
+      return;
+    }
+    if (letter.size > 10 * 1024 * 1024) {
+      toast.error('The PDF must be 10MB or smaller.');
+      setIsLoading(false);
+      return;
+    }
+    formData.append('files', letter, 'postingAppointmentLetter.pdf');
 
     try {
       const response = await fetch('http://localhost:3000/users/submit-onboarding', {
@@ -328,6 +344,15 @@ const OnboardingForm: React.FC = () => {
               }
             />
           </Form.Item>
+          {programStudied === 'Others' && (
+            <Form.Item
+              name="otherProgram"
+              label="Your Course"
+              rules={[{ required: true, message: 'Please enter your course!' }]}
+            >
+              <Input className="rounded-md border-[#a9a7a7]" placeholder="Enter your course" />
+            </Form.Item>
+          )}
           <Form.Item
             name="divisionPostedTo"
             label="Division Posted To"
@@ -335,52 +360,38 @@ const OnboardingForm: React.FC = () => {
           >
             <Input className="rounded-md border-[#a9a7a7]" />
           </Form.Item>
-          <div className="flex space-x-4">
-            <Form.Item
-              name="postingLetter"
-              label="Posting Letter (PDF)"
-              valuePropName="file"
-              getValueFromEvent={(e) => e?.file}
-              rules={[{ required: true, message: 'Please upload your posting letter!' }]}
-              className="flex-1"
+          <Form.Item
+            name="postingAppointmentLetter"
+            label="Posting & Appointment Letter (PDF, 10MB max)"
+            valuePropName="file"
+            getValueFromEvent={(e) => e?.file}
+            rules={[{ required: true, message: 'Please upload your posting and appointment letter!' }]}
+          >
+            <Upload
+              accept="application/pdf,.pdf"
+              beforeUpload={(file) => {
+                const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+                if (!isPdf) {
+                  toast.error('Only PDF files are allowed.');
+                  return Upload.LIST_IGNORE;
+                }
+                if (file.size > 10 * 1024 * 1024) {
+                  toast.error('The PDF must be 10MB or smaller.');
+                  return Upload.LIST_IGNORE;
+                }
+                return false;
+              }}
+              maxCount={1}
+              className="rounded-md w-full"
             >
-              <Upload
-                accept=".pdf"
-                beforeUpload={() => false}
-                maxCount={1}
-                className="rounded-md w-full"
+              <Button
+                icon={<UploadOutlined />}
+                className="!border-[#6b3e1d] !bg-[#ffffff] !text-[#5B3418] hover:!bg-[#6b3e1d] hover:!text-white w-full"
               >
-                <Button
-                  icon={<UploadOutlined />}
-                  className="!border-[#6b3e1d] !bg-[#ffffff] !text-[#5B3418] hover:!bg-[#6b3e1d] hover:!text-white w-full"
-                >
-                  Upload Posting Letter
-                </Button>
-              </Upload>
-            </Form.Item>
-            <Form.Item
-              name="appointmentLetter"
-              label="Appointment Letter (PDF)"
-              valuePropName="file"
-              getValueFromEvent={(e) => e?.file}
-              rules={[{ required: true, message: 'Please upload your appointment letter!' }]}
-              className="flex-1"
-            >
-              <Upload
-                accept=".pdf"
-                beforeUpload={() => false}
-                maxCount={1}
-                className="rounded-md w-full"
-              >
-                <Button
-                  icon={<UploadOutlined />}
-                  className="!border-[#6b3e1d] !bg-[#ffffff] !text-[#5B3418] hover:!bg-[#6b3e1d] hover:!text-white w-full"
-                >
-                  Upload Appointment Letter
-                </Button>
-              </Upload>
-            </Form.Item>
-          </div>
+                Upload Posting & Appointment Letter
+              </Button>
+            </Upload>
+          </Form.Item>
           <Form.Item>
             <Button
               type="primary"

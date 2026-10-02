@@ -13,6 +13,10 @@ interface PersonnelStatus {
   submissionStatus: string | null;
   completionPercentage: number;
   serviceDays: number;
+  uploadRejected?: boolean;
+  uploadRejectionReason?: string | null;
+  verificationRejected?: boolean;
+  verificationRejectionReason?: string | null;
 }
 
 interface Department {
@@ -102,6 +106,10 @@ const Home: React.FC = () => {
           submissionStatus: data.submissionStatus || 'N/A',
           completionPercentage: data.completionPercentage || 0,
           serviceDays: data.serviceDays || 0,
+          uploadRejected: data.uploadRejected,
+          uploadRejectionReason: data.uploadRejectionReason,
+          verificationRejected: data.verificationRejected,
+          verificationRejectionReason: data.verificationRejectionReason,
         });
       } catch (err) {
         setError('Unable to load personnel status');
@@ -113,6 +121,37 @@ const Home: React.FC = () => {
 
     fetchPersonnelStatus();
   }, [userId]);
+
+  const handleReplaceLetter = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      message.error('Only PDF files are allowed');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      message.error('The PDF must be 10MB or smaller');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('postingAppointmentLetter', file, 'postingAppointmentLetter.pdf');
+    try {
+      const response = await fetch('http://localhost:3000/users/replace-posting-appointment-letter', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: formData,
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to upload the letter');
+      }
+      message.success('Posting and appointment letter submitted again');
+      setStatusData((prev) => prev ? { ...prev, uploadRejected: false, uploadRejectionReason: null, submissionStatus: 'PENDING' } : prev);
+    } catch (err: any) {
+      message.error(err.message || 'Failed to upload the letter');
+    }
+  };
 
   // Role-based dashboard content
   const renderDashboardContent = () => {
@@ -328,6 +367,31 @@ const Home: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {statusData?.uploadRejected && (
+          <Alert
+            className="mb-6"
+            type="warning"
+            showIcon
+            message="Your posting and appointment letter was not accepted"
+            description={
+              <div>
+                <p className="mb-2">{statusData.uploadRejectionReason}</p>
+                <p className="mb-2">Upload the correct PDF. It must be 10MB or smaller.</p>
+                <input type="file" accept="application/pdf,.pdf" onChange={handleReplaceLetter} />
+              </div>
+            }
+          />
+        )}
+        {statusData?.verificationRejected && (
+          <Alert
+            className="mb-6"
+            type="warning"
+            showIcon
+            message="Your verification form was not accepted"
+            description={statusData.verificationRejectionReason || 'Upload the correct PDF from Upload Verification in the menu.'}
+          />
+        )}
 
         {/* Section 2: Analytics */}
       <section className="mb-6 sm:mb-8">

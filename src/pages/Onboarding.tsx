@@ -117,11 +117,12 @@ const Onboarding: React.FC = () => {
       const token = localStorage.getItem("token");
       const response = await axios.post(
         "http://localhost:3000/auth/init-onboarding",
-        { nssNumber, email, phoneNumber }, // Include phoneNumber in the payload
+        { nssNumber, email, phoneNumber },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          timeout: 20000,
         }
       );
 
@@ -135,7 +136,9 @@ const Onboarding: React.FC = () => {
       setPhoneNumber(""); // Clear phone number field
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message || "Failed to initiate onboarding. Please try again.";
+        error.code === "ECONNABORTED"
+          ? "Onboarding did not finish. The email service did not respond."
+          : error.response?.data?.message || "Failed to initiate onboarding. Please try again.";
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 3000,

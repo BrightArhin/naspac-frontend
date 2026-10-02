@@ -46,6 +46,9 @@ const Endorsement: React.FC = () => {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [shortlistModalVisible, setShortlistModalVisible] = useState(false);
   const [validatedCount, setValidatedCount] = useState<number>(0);
+  const [rejectUploadVisible, setRejectUploadVisible] = useState(false);
+  const [rejectUploadReason, setRejectUploadReason] = useState('');
+  const [rejectUploadId, setRejectUploadId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchValidatedCount = async () => {
@@ -166,8 +169,7 @@ const Endorsement: React.FC = () => {
       'Year of NSS': s.yearOfNSS,
       'Program Studied': s.programStudied,
       'Division Posted To': s.divisionPostedTo,
-      'Posting Letter URL': s.postingLetterUrl,
-      'Appointment Letter URL': s.appointmentLetterUrl,
+      'Posting & Appointment Letter URL': s.appointmentLetterUrl || s.postingLetterUrl,
       Status: s.status,
       'Created At': s.createdAt,
       'Updated At': s.updatedAt,
@@ -192,6 +194,38 @@ const Endorsement: React.FC = () => {
     if (modalContent?.url) {
       const fileUrl = getAbsoluteUrl(modalContent.url);
       window.open(fileUrl, '_blank');
+    }
+  };
+
+  const handleRejectVerification = async () => {
+    if (!rejectUploadId) return;
+    if (rejectUploadReason.trim().length < 5) {
+      toast.error('Enter a reason of at least 5 characters');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`${apiBase}/users/reject-upload/${rejectUploadId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ target: 'verification', reason: rejectUploadReason.trim() }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to reject upload');
+      }
+      toast.success('Verification form rejected. The personnel has been emailed.');
+      setRejectUploadVisible(false);
+      setRejectUploadReason('');
+      setModalVisible(false);
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to reject upload');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -372,7 +406,7 @@ const Endorsement: React.FC = () => {
         ),
     },
     {
-      title: 'Appt. Letter',
+      title: 'Posting & Appt. Letter',
       key: 'appointmentLetterUrl',
       width: 110,
       ellipsis: true,
@@ -383,7 +417,7 @@ const Endorsement: React.FC = () => {
               type="link"
               onClick={(e) => {
                 e.stopPropagation();
-                showLetter(record.appointmentLetterUrl, 'Appointment Letter', record.id);
+                showLetter(record.appointmentLetterUrl || record.postingLetterUrl, 'Posting & Appointment Letter', record.id);
               }}
               icon={<EyeOutlined style={{ fontSize: '16px', color: '#5B3418' }} />}
             />
@@ -485,6 +519,20 @@ const Endorsement: React.FC = () => {
                 Validate
               </Button>
             ),
+            modalContent?.type === 'Verification Form' && statusFilter !== 'VALIDATED' && modalContent.id && (
+              <Button
+                key="reject-upload"
+                className="!bg-[#8a5a2b] !border-0"
+                type="primary"
+                onClick={() => {
+                  setRejectUploadId(modalContent.id as number);
+                  setRejectUploadReason('');
+                  setRejectUploadVisible(true);
+                }}
+              >
+                Reject upload
+              </Button>
+            ),
             <Button
               key="close"
               className="!bg-[#696767] hover:!bg-[#5f5d5d] !border-0"
@@ -524,6 +572,25 @@ const Endorsement: React.FC = () => {
         <p className="text-red-600 font-semibold">
           This action is irreversible. Are you sure you want to proceed?
         </p>
+      </Modal>
+      <Modal
+        title="Reject this upload"
+        open={rejectUploadVisible}
+        onOk={handleRejectVerification}
+        onCancel={() => setRejectUploadVisible(false)}
+        okText="Reject and email"
+        cancelText="Cancel"
+        confirmLoading={loading}
+        okButtonProps={{ className: '!bg-[#8a5a2b] !border-0' }}
+        cancelButtonProps={{ className: '!bg-[#c95757] !border-0' }}
+      >
+        <p className="mb-2">The personnel will receive an email and can upload the correct verification PDF.</p>
+        <Input.TextArea
+          rows={4}
+          value={rejectUploadReason}
+          onChange={(e) => setRejectUploadReason(e.target.value)}
+          placeholder="Say what is wrong with the document"
+        />
       </Modal>
       </div>
     </div>

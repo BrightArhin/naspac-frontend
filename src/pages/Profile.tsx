@@ -83,23 +83,21 @@ useEffect(() => {
 }, [userId]);
 
   // Handle file changes for signature
-  const handleSignatureChange: UploadProps['onChange'] = ({ file }) => {
-    if (file.status === 'done' || file.status === 'uploading') {
-      setSignatureFile(file);
-    } else if (file.status === 'error') {
-      console.error('Signature upload error:', file.error);
-      message.error('Failed to process signature file.');
+  const handleSignatureChange: UploadProps['onChange'] = ({ file, fileList }) => {
+    if (file.status === 'removed' || fileList.length === 0) {
+      setSignatureFile(null);
+      return;
     }
+    setSignatureFile(fileList[fileList.length - 1]);
   };
 
   // Handle file changes for stamp
-  const handleStampChange: UploadProps['onChange'] = ({ file }) => {
-    if (file.status === 'done' || file.status === 'uploading') {
-      setStampFile(file);
-    } else if (file.status === 'error') {
-      console.error('Stamp upload error:', file.error);
-      message.error('Failed to process stamp file.');
+  const handleStampChange: UploadProps['onChange'] = ({ file, fileList }) => {
+    if (file.status === 'removed' || fileList.length === 0) {
+      setStampFile(null);
+      return;
     }
+    setStampFile(fileList[fileList.length - 1]);
   };
 
   // Handle file changes for template
@@ -171,6 +169,44 @@ useEffect(() => {
     }
   };
 
+  const handleStaffSignatureUpload = async () => {
+    if (!signatureFile?.originFileObj || !(signatureFile.originFileObj instanceof File)) {
+      message.error('Please upload a signature.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      message.error('Please log in to upload files.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('signature', signatureFile.originFileObj, signatureFile.name);
+
+    setSignatureLoading(true);
+    try {
+      const response = await axios.post(
+        'http://localhost:3000/users/upload-appointment-signature',
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      message.success(response.data.message || 'Signature uploaded successfully.');
+      form.resetFields();
+      setSignatureFile(null);
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to upload signature. Please try again.';
+      message.error(errorMessage);
+    } finally {
+      setSignatureLoading(false);
+    }
+  };
+
 const handleTemplateUpload = async () => {
   if (!templateFile) {
     message.error('Please upload a template file.');
@@ -235,13 +271,13 @@ const handleTemplateUpload = async () => {
       const isValidSize = file.size <= 2 * 1024 * 1024;
       if (!isValidType) {
         message.error('Only PNG or JPEG files are allowed!');
-        return false;
+        return Upload.LIST_IGNORE;
       }
       if (!isValidSize) {
         message.error('File must be smaller than 2MB!');
-        return false;
+        return Upload.LIST_IGNORE;
       }
-      return true;
+      return false;
     },
     maxCount: 1,
     customRequest: ({ onSuccess }) => {
@@ -256,13 +292,13 @@ const handleTemplateUpload = async () => {
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ].includes(file.type);
-    const isValidSize = file.size <= 5 * 1024 * 1024;
+    const isValidSize = file.size <= 10 * 1024 * 1024;
     if (!isValidType) {
       message.error('Only PDF or Word files are allowed!');
       return false;
     }
     if (!isValidSize) {
-      message.error('File must be smaller than 5MB!');
+      message.error('File must be smaller than 10MB!');
       return false;
     }
     return true;
@@ -342,13 +378,14 @@ const handleTemplateUpload = async () => {
                     </>
                   }
                   rules={[{ required: true, message: 'Please upload a signature!' }]}
+                  valuePropName="fileList"
+                  getValueFromEvent={(event) => event?.fileList}
                 >
                   <Upload
                     {...uploadProps}
                     listType="picture"
                     name="signature"
                     onChange={handleSignatureChange}
-                    fileList={signatureFile ? [signatureFile] : []}
                   >
                     <Button
                       className="!bg-[#696867] hover:!bg-[#4e4e4d] text-white border-none"
@@ -369,13 +406,14 @@ const handleTemplateUpload = async () => {
                     </>
                   }
                   rules={[{ required: true, message: 'Please upload a stamp!' }]}
+                  valuePropName="fileList"
+                  getValueFromEvent={(event) => event?.fileList}
                 >
                   <Upload
                     {...uploadProps}
                     listType="picture"
                     name="stamp"
                     onChange={handleStampChange}
-                    fileList={stampFile ? [stampFile] : []}
                   >
                     <Button
                       className="!bg-[#696867] hover:!bg-[#4e4e4d] text-white border-none"
@@ -428,7 +466,7 @@ const handleTemplateUpload = async () => {
                   name="template"
                   label={
                     <>
-                      <Text strong>Template File (PDF/Word, Max 5MB)</Text>
+                      <Text strong>Template File (PDF/Word, Max 10MB)</Text>
                       <Text type="secondary" className="block">
                         File should be a PDF or Word document
                       </Text>
@@ -465,6 +503,56 @@ const handleTemplateUpload = async () => {
             </Card>
           </Col>
         </>
+      )}
+      {role === 'STAFF' && (
+        <Col xs={24} lg={16}>
+          <Card
+            className="rounded-lg shadow-md bg-white border-none"
+            bodyStyle={{ padding: '32px', minHeight: '250px' }}
+            title={
+              <Title level={4} className="text-[#3C3939]">
+                Upload Signature
+              </Title>
+            }
+          >
+            <Text type="secondary" className="block mb-4">
+              This signature is placed on the job confirmation letter when you validate a personnel. If you leave it empty, validation uses an admin signature instead.
+            </Text>
+            <Form form={form} layout="vertical" onFinish={handleStaffSignatureUpload} className="space-y-4">
+              <Form.Item
+                name="signature"
+                label={<Text strong>Signature (PNG/JPEG, Max 2MB)</Text>}
+                rules={[{ required: true, message: 'Please upload a signature!' }]}
+                valuePropName="fileList"
+                getValueFromEvent={(event) => event?.fileList}
+              >
+                <Upload
+                  {...uploadProps}
+                  listType="picture"
+                  maxCount={1}
+                  onChange={handleSignatureChange}
+                >
+                  <Button
+                    className="!bg-[#696867] hover:!bg-[#4e4e4d] text-white border-none"
+                    icon={<UploadOutlined />}
+                  >
+                    Upload Signature
+                  </Button>
+                </Upload>
+              </Form.Item>
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={signatureLoading}
+                  className="!bg-[#775237] hover:!bg-[#754726] border-none"
+                >
+                  Submit
+                </Button>
+              </Form.Item>
+            </Form>
+          </Card>
+        </Col>
       )}
     </Row>
   </div>

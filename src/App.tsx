@@ -164,7 +164,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
-              path="/可可入职用户入门指南"
+              path="/onboarding"
               element={
                 <ProtectedRoute>
                   <Onboarding/>

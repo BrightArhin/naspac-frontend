@@ -9,6 +9,9 @@ import Carousel from "../components/Carousel";
 import { useAuth } from "../AuthContext";
 import { SafetyOutlined } from "@ant-design/icons";
 
+const apiBase = "http://localhost:3000";
+// const apiBase = "https://nssapi.cocobod.net";
+
 const StaffLogin: React.FC = () => {
   const [staffId, setStaffId] = useState("");
   const [password, setPassword] = useState("");
@@ -37,7 +40,7 @@ const StaffLogin: React.FC = () => {
 
   // Cooldown timer effect
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setInterval> | undefined;
     if (resendCooldown > 0) {
       timer = setInterval(() => {
         setResendCooldown((prev) => prev - 1);
@@ -73,7 +76,7 @@ const StaffLogin: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/auth/login-staff-admin", {
+      const response = await fetch(`${apiBase}/auth/login-staff-admin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ staffId, password }),
@@ -91,7 +94,12 @@ const StaffLogin: React.FC = () => {
           position: "top-right",
           autoClose: 10000,
         });
-      } else if (data.accessToken && (data.role === "ADMIN" || data.role === "STAFF" || data.role === "SUPERVISOR")) {
+      } else if (
+        data.accessToken &&
+        (data.role === "ADMIN" ||
+          data.role === "STAFF" ||
+          data.role === "SUPERVISOR")
+      ) {
         localStorage.setItem("token", data.accessToken);
         setRole(data.role);
         toast.success("Login successful!", {
@@ -126,7 +134,7 @@ const StaffLogin: React.FC = () => {
     }
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:3000/auth/verifyTfa", {
+      const response = await fetch(`${apiBase}/auth/verifyTfa`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -136,7 +144,12 @@ const StaffLogin: React.FC = () => {
         credentials: "include",
       });
       const data = await response.json();
-      if (data.accessToken && (data.role === "ADMIN" || data.role === "STAFF" || data.role === "SUPERVISOR")) {
+      if (
+        data.accessToken &&
+        (data.role === "ADMIN" ||
+          data.role === "STAFF" ||
+          data.role === "SUPERVISOR")
+      ) {
         localStorage.setItem("token", data.accessToken);
         setRole(data.role);
         toast.success("2FA verification successful!", {
@@ -181,16 +194,19 @@ const StaffLogin: React.FC = () => {
     }
 
     if (resendCooldown > 0) {
-      toast.info(`Please wait ${resendCooldown} seconds before resending OTP.`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.info(
+        `Please wait ${resendCooldown} seconds before resending OTP.`,
+        {
+          position: "top-right",
+          autoClose: 3000,
+        },
+      );
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:3000/auth/resendTfa", {
+      const response = await fetch(`${apiBase}/auth/resendTfa`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -239,7 +255,10 @@ const StaffLogin: React.FC = () => {
             </h1>
           </div>
 
-          <form className="flex flex-col gap-3 sm:gap-4 md:gap-5" onSubmit={handleSubmit}>
+          <form
+            className="flex flex-col gap-3 sm:gap-4 md:gap-5"
+            onSubmit={handleSubmit}
+          >
             {is2FAStep ? (
               <>
                 <Input
@@ -248,20 +267,30 @@ const StaffLogin: React.FC = () => {
                   type="text"
                   value={tfaToken}
                   onChange={(e) => setTfaToken(e.target.value)}
-                  icon={<SafetyOutlined className="w-4 h-4 sm:w-5 sm:h-5 !text-[#7c838d]" />}
+                  icon={
+                    <SafetyOutlined className="w-4 h-4 sm:w-5 sm:h-5 !text-[#7c838d]" />
+                  }
                 />
                 <div className="text-right">
                   <button
                     type="button"
                     onClick={handleResendOTP}
                     className={`font-['Poppins',Helvetica] text-xs sm:text-sm text-[#5b3418] hover:underline cursor-pointer ${
-                      isLoading || resendCooldown > 0 || resendAttempts >= MAX_RESEND_ATTEMPTS
+                      isLoading ||
+                      resendCooldown > 0 ||
+                      resendAttempts >= MAX_RESEND_ATTEMPTS
                         ? "opacity-50 cursor-not-allowed"
                         : ""
                     }`}
-                    disabled={isLoading || resendCooldown > 0 || resendAttempts >= MAX_RESEND_ATTEMPTS}
+                    disabled={
+                      isLoading ||
+                      resendCooldown > 0 ||
+                      resendAttempts >= MAX_RESEND_ATTEMPTS
+                    }
                   >
-                    {resendCooldown > 0 ? `Resend OTP (${resendCooldown}s)` : "Resend OTP"}
+                    {resendCooldown > 0
+                      ? `Resend OTP (${resendCooldown}s)`
+                      : "Resend OTP"}
                   </button>
                 </div>
               </>
@@ -368,8 +397,16 @@ const StaffLogin: React.FC = () => {
                 </div>
               </>
             )}
-            <Button className="cursor-pointer" type="submit" disabled={isLoading}>
-              {isLoading ? "Processing..." : is2FAStep ? "Verify OTP" : "Sign In"}
+            <Button
+              className="cursor-pointer"
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading
+                ? "Processing..."
+                : is2FAStep
+                  ? "Verify OTP"
+                  : "Sign In"}
             </Button>
           </form>
         </CardContent>

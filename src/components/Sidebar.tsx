@@ -16,6 +16,8 @@ const { Sider } = Layout;
 
 interface PersonnelStatus {
   submissionStatus: string | null;
+  verificationRejected?: boolean;
+  verificationRejectionReason?: string | null;
 }
 
 const Sidebar: React.FC = () => {
@@ -69,6 +71,8 @@ const Sidebar: React.FC = () => {
         const data = await response.json();
         setStatusData({
           submissionStatus: data.submissionStatus || null,
+          verificationRejected: data.verificationRejected,
+          verificationRejectionReason: data.verificationRejectionReason,
         });
       } catch (err) {
         message.error('Unable to load personnel status');
@@ -97,8 +101,13 @@ const Sidebar: React.FC = () => {
         message.error('No file selected');
         return;
       }
-      if (file.type !== 'application/pdf') {
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      if (!isPdf) {
         message.error('Only PDF files are allowed');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        message.error('The PDF must be 10MB or smaller');
         return;
       }
 
@@ -136,6 +145,8 @@ const Sidebar: React.FC = () => {
           const data = await statusResponse.json();
           setStatusData({
             submissionStatus: data.submissionStatus || null,
+            verificationRejected: data.verificationRejected,
+            verificationRejectionReason: data.verificationRejectionReason,
           });
         }
       } catch (err: any) {
@@ -149,7 +160,7 @@ const Sidebar: React.FC = () => {
   // Define route mappings for menu items
   const mainRouteMap: { [key: string]: string } = {
     '1': '/',
-    '2': role === 'PERSONNEL' ? '/my-details' : '/可可入职用户入门指南',
+    '2': role === 'PERSONNEL' ? '/my-details' : '/onboarding',
     '3': role === 'PERSONNEL' ? '/endorsed-posting-letter' : '/shortlist',
     '4': role === 'PERSONNEL' ? '/upload-nss-document' : role === 'ADMIN' ? '/endorsement' : '/manage-personnel',
     '5': role === 'PERSONNEL' ? '/appointment-letter' : role === 'ADMIN' ? '/manage-personnel' : '/dept-placements',
@@ -460,7 +471,10 @@ const Sidebar: React.FC = () => {
         centered
         className="modern-modal"
       >
-        <p>Please upload your verification form. The file must be in <strong>PDF</strong> format.</p>
+        {statusData?.verificationRejected && (
+          <p className="mb-2">Your last verification form was not accepted: {statusData.verificationRejectionReason}</p>
+        )}
+        <p>Please upload your verification form. The file must be a <strong>PDF</strong> no larger than 10MB.</p>
         <p>Are you sure you want to proceed?</p>
       </Modal>
     </Sider>

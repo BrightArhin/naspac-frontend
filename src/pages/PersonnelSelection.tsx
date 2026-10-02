@@ -28,6 +28,7 @@ interface Submission {
   postingLetterUrl: string;
   appointmentLetterUrl: string;
   status: string;
+  uploadRejected?: boolean;
   createdAt: string;
   updatedAt: string;
   programStudied: string;
@@ -45,13 +46,16 @@ const PersonnelSelection: React.FC = () => {
   const [programs, setPrograms] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalContent, setModalContent] = useState<{ url: string; type: string } | null>(null);
+  const [modalContent, setModalContent] = useState<{ url: string; type: string; id?: number } | null>(null);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [shortlistModalVisible, setShortlistModalVisible] = useState(false);
   const [shortlistedCount, setShortlistedCount] = useState<number>(0);
   const [departments, setDepartments] = useState<{ id: number; name: string }[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<number | null>(null);
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
+  const [rejectUploadVisible, setRejectUploadVisible] = useState(false);
+  const [rejectUploadReason, setRejectUploadReason] = useState('');
+  const [rejectUploadIds, setRejectUploadIds] = useState<number[]>([]);
 
   useEffect(() => {
   const fetchShortlistedCount = async () => {
@@ -93,7 +97,7 @@ const PersonnelSelection: React.FC = () => {
         });
         const data: Submission[] = await response.json();
         if (response.ok) {
-          const pendingSubmissions = data.filter((s) => s.status === 'PENDING');
+          const pendingSubmissions = data.filter((s) => s.status === 'PENDING' && !s.uploadRejected);
           setSubmissions(pendingSubmissions);
           setFilteredSubmissions(pendingSubmissions);
           const uniquePrograms = Array.from(new Set(data.map((s: Submission) => s.programStudied)));
@@ -160,8 +164,7 @@ const PersonnelSelection: React.FC = () => {
       'Year of NSS': s.yearOfNSS,
       'Program Studied': s.programStudied,
       'Division Posted To': s.divisionPostedTo,
-      'Posting Letter URL': s.postingLetterUrl,
-      'Appointment Letter URL': s.appointmentLetterUrl,
+      'Posting & Appointment Letter URL': s.appointmentLetterUrl || s.postingLetterUrl,
       Status: s.status,
       'Created At': s.createdAt,
       'Updated At': s.updatedAt,
@@ -175,8 +178,8 @@ const PersonnelSelection: React.FC = () => {
   };
 
   // Handle letter view
-  const showLetter = (url: string, type: string) => {
-    setModalContent({ url, type });
+  const showLetter = (url: string, type: string, id?: number) => {
+    setModalContent({ url, type, id });
     setModalVisible(true);
   };
 
@@ -212,6 +215,11 @@ useEffect(() => {
     if (!selectedDepartment) {
     toast.error('Please select a department');
     return;
+    }
+    const waitingForReplacement = submissions.filter((s) => selectedRows.includes(s.id) && s.uploadRejected);
+    if (waitingForReplacement.length > 0) {
+      toast.error('A selected letter was rejected and is waiting for a new PDF');
+      return;
     }
     setLoading(true);
     try {
@@ -301,6 +309,40 @@ useEffect(() => {
     setLoading(false);
   }
 };
+
+  const handleRejectUpload = async () => {
+    if (rejectUploadReason.trim().length < 5) {
+      toast.error('Enter a reason of at least 5 characters');
+      return;
+    }
+    setLoading(true);
+    try {
+      await Promise.all(rejectUploadIds.map(async (id) => {
+        const response = await fetch(`${apiBase}/users/reject-upload/${id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({ target: 'letter', reason: rejectUploadReason.trim() }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to reject upload');
+        }
+      }));
+      toast.success('Upload rejected. The personnel has been emailed.');
+      setRejectUploadVisible(false);
+      setRejectUploadReason('');
+      setModalVisible(false);
+      setSelectedRows([]);
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to reject upload');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (role !== 'ADMIN' && role !== 'STAFF') {
     return (
@@ -405,46 +447,28 @@ useEffect(() => {
       ),
     },
     {
-      title: 'Post. Letter',
-      key: 'postingLetterUrl',
-      width: 110,
-      ellipsis: true,
-      render: (_: any, record: Submission) =>
-        record.postingLetterUrl ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <Button
-              type="link"
-              onClick={(e) => {
-                e.stopPropagation();
-                showLetter(record.postingLetterUrl, 'Posting Letter');
-              }}
-              icon={<EyeOutlined style={{ fontSize: '16px', color: '#5B3418' }} />}
-            />
-          </div>
-        ) : (
-          ''
-        ),
-    },
-    {
-      title: 'Appt. Letter',
+      title: 'Posting & Appt. Letter',
       key: 'appointmentLetterUrl',
-      width: 110,
+      width: 160,
       ellipsis: true,
-      render: (_: any, record: Submission) =>
-        record.appointmentLetterUrl ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      render: (_: any, record: Submission) => {
+        const letterUrl = record.appointmentLetterUrl || record.postingLetterUrl;
+        return letterUrl ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
             <Button
               type="link"
               onClick={(e) => {
                 e.stopPropagation();
-                showLetter(record.appointmentLetterUrl, 'Appointment Letter');
+                showLetter(letterUrl, 'Posting & Appointment Letter', record.id);
               }}
               icon={<EyeOutlined style={{ fontSize: '16px', color: '#5B3418' }} />}
             />
+            {record.uploadRejected && <span className="text-xs text-[#c95757]">Rejected</span>}
           </div>
         ) : (
           ''
-        ),
+        );
+      },
     },
   ];
 
@@ -474,6 +498,17 @@ useEffect(() => {
                   icon={<FileExcelOutlined />}
                 >
                   Reject
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setRejectUploadIds(selectedRows);
+                    setRejectUploadReason('');
+                    setRejectUploadVisible(true);
+                  }}
+                  className="!bg-[#8a5a2b] hover:!bg-[#6b3e1d] !border-0"
+                >
+                  Reject upload
                 </Button>
               </Space>
             )}
@@ -538,6 +573,20 @@ useEffect(() => {
             >
               Download
             </Button>,
+            modalContent?.id && (
+              <Button
+                key="reject-upload"
+                className="!bg-[#8a5a2b] !border-0"
+                type="primary"
+                onClick={() => {
+                  setRejectUploadIds([modalContent.id as number]);
+                  setRejectUploadReason('');
+                  setRejectUploadVisible(true);
+                }}
+              >
+                Reject upload
+              </Button>
+            ),
             <Button
               key="close"
               className="!bg-[#c95757] !border-0"
@@ -545,7 +594,7 @@ useEffect(() => {
             >
               Close
             </Button>,
-          ]}
+          ].filter(Boolean)}
           width={800}
           className="centered-modal"
         >
@@ -608,6 +657,27 @@ useEffect(() => {
         cancelButtonProps={{ className: '!bg-[#c95757] !border-0' }}
       >
         <p>Are you sure you want to reject {selectedRows.length} personnel? This action will notify them to do reposting.</p>
+      </Modal>
+      <Modal
+        title="Reject this upload"
+        open={rejectUploadVisible}
+        onOk={handleRejectUpload}
+        onCancel={() => setRejectUploadVisible(false)}
+        okText="Reject and email"
+        cancelText="Cancel"
+        confirmLoading={loading}
+        okButtonProps={{ className: '!bg-[#8a5a2b] !border-0' }}
+        cancelButtonProps={{ className: '!bg-[#c95757] !border-0' }}
+      >
+        <p className="mb-2">
+          Use this when the PDF is the wrong document. The personnel keeps their account, receives an email, and can upload a new PDF.
+        </p>
+        <Input.TextArea
+          rows={4}
+          value={rejectUploadReason}
+          onChange={(e) => setRejectUploadReason(e.target.value)}
+          placeholder="Say what is wrong with the document"
+        />
       </Modal>
       </div>
     </div>

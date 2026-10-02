@@ -6,6 +6,8 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { useAuth } from '../AuthContext';
 import '../components/PersonnelSelection.css';
+import EndorsePreview from '../components/EndorsePreview';
+import { defaultEndorsePlacements, type EndorsePlacements } from '../components/endorsePlacements';
 
 const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 const getAbsoluteUrl = (url: string) => (url && url.startsWith('http') ? url : `${apiBase}${url || ''}`);
@@ -31,7 +33,11 @@ interface Submission {
   createdAt: string;
   updatedAt: string;
   programStudied: string;
+  uploadRejected?: boolean;
 }
+
+const parseEndorsePages = (value: string) =>
+  [...new Set(value.split(/[^0-9]+/).map(Number).filter((page) => page > 0))];
 
 const Endorsement: React.FC = () => {
   const { role } = useAuth();
@@ -46,6 +52,11 @@ const Endorsement: React.FC = () => {
   const [shortlistModalVisible, setShortlistModalVisible] = useState(false);
   const [endorsedCount, setEndorsedCount] = useState<number>(0);
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
+  const [endorsePages, setEndorsePages] = useState('4, 5');
+  const [placements, setPlacements] = useState<EndorsePlacements>(defaultEndorsePlacements);
+  const [rejectUploadVisible, setRejectUploadVisible] = useState(false);
+  const [rejectUploadReason, setRejectUploadReason] = useState('');
+  const [rejectUploadIds, setRejectUploadIds] = useState<number[]>([]);
 
    // Fetch endorsed count
   useEffect(() => {
@@ -160,8 +171,7 @@ const Endorsement: React.FC = () => {
       'Year of NSS': s.yearOfNSS,
       'Program Studied': s.programStudied,
       'Division Posted To': s.divisionPostedTo,
-      'Posting Letter URL': s.postingLetterUrl,
-      'Appointment Letter URL': s.appointmentLetterUrl,
+      'Posting & Appointment Letter URL': s.appointmentLetterUrl || s.postingLetterUrl,
       Status: s.status,
       'Created At': s.createdAt,
       'Updated At': s.updatedAt,
@@ -192,6 +202,10 @@ const Endorsement: React.FC = () => {
   // Handle endorse action
  const handleEndorse = async () => {
   if (!modalContent?.id) return;
+  if (parseEndorsePages(endorsePages).length === 0) {
+    toast.error('Enter the page numbers to endorse, for example 4, 5');
+    return;
+  }
    console.log('Endorsing submission:', modalContent.id);
   setLoading(true);
   try {
@@ -204,6 +218,8 @@ const Endorsement: React.FC = () => {
       body: JSON.stringify({
         submissionId: modalContent.id,
         documentType: 'appointmentLetter',
+        pages: parseEndorsePages(endorsePages),
+        placements,
       }),
     });
     if (response.ok) {
@@ -227,6 +243,11 @@ const Endorsement: React.FC = () => {
 
   // Handle bulk endorse
   const handleShortlistConfirm = async () => {
+  const pages = parseEndorsePages(endorsePages);
+  if (pages.length === 0) {
+    toast.error('Enter the page numbers to endorse, for example 4, 5');
+    return;
+  }
   setLoading(true);
   try {
     const updatePromises = selectedRows.map(async (id) => {
@@ -239,6 +260,8 @@ const Endorsement: React.FC = () => {
         body: JSON.stringify({
           submissionId: id,
           documentType: 'appointmentLetter',
+          pages,
+          placements,
         }),
       });
       if (!response.ok) {
@@ -300,6 +323,40 @@ const Endorsement: React.FC = () => {
     setLoading(false);
   }
 };
+
+  const handleRejectUpload = async () => {
+    if (rejectUploadReason.trim().length < 5) {
+      toast.error('Enter a reason of at least 5 characters');
+      return;
+    }
+    setLoading(true);
+    try {
+      await Promise.all(rejectUploadIds.map(async (id) => {
+        const response = await fetch(`${apiBase}/users/reject-upload/${id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({ target: 'letter', reason: rejectUploadReason.trim() }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to reject upload');
+        }
+      }));
+      toast.success('Upload rejected. The personnel has been emailed.');
+      setRejectUploadVisible(false);
+      setRejectUploadReason('');
+      setModalVisible(false);
+      setSelectedRows([]);
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to reject upload');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Restrict to ADMIN
   if (!role || role !== 'ADMIN') {
@@ -387,46 +444,27 @@ const Endorsement: React.FC = () => {
       ),
     },
     {
-      title: 'Post. Letter',
-      key: 'postingLetterUrl',
-      width: 110,
-      ellipsis: true,
-      render: (_: any, record: Submission) =>
-        record.postingLetterUrl ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <Button
-              type="link"
-              onClick={(e) => {
-                e.stopPropagation();
-                showLetter(record.postingLetterUrl, 'Posting Letter', record.id);
-              }}
-              icon={<EyeOutlined style={{ fontSize: '16px', color: '#5B3418' }} />}
-            />
-          </div>
-        ) : (
-          ''
-        ),
-    },
-    {
-      title: 'Appt. Letter',
+      title: 'Posting & Appt. Letter',
       key: 'appointmentLetterUrl',
-      width: 110,
+      width: 150,
       ellipsis: true,
-      render: (_: any, record: Submission) =>
-        record.appointmentLetterUrl ? (
+      render: (_: any, record: Submission) => {
+        const letterUrl = record.appointmentLetterUrl || record.postingLetterUrl;
+        return letterUrl ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <Button
               type="link"
               onClick={(e) => {
                 e.stopPropagation();
-                showLetter(record.appointmentLetterUrl, 'Appointment Letter', record.id);
+                showLetter(letterUrl, 'Posting & Appointment Letter', record.id);
               }}
               icon={<EyeOutlined style={{ fontSize: '16px', color: '#5B3418' }} />}
             />
           </div>
         ) : (
           ''
-        ),
+        );
+      },
     },
   ];
 
@@ -456,6 +494,17 @@ const Endorsement: React.FC = () => {
                   icon={<FileExcelOutlined />}
                 >
                   Reject
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setRejectUploadIds(selectedRows);
+                    setRejectUploadReason('');
+                    setRejectUploadVisible(true);
+                  }}
+                  className="!bg-[#8a5a2b] hover:!bg-[#6b3e1d] !border-0"
+                >
+                  Reject upload
                 </Button>
               </Space>
             )}
@@ -518,7 +567,7 @@ const Endorsement: React.FC = () => {
             >
               Download
             </Button>,
-            modalContent?.type === 'Appointment Letter' && statusFilter !== 'ENDORSED' && (
+            modalContent?.type === 'Posting & Appointment Letter' && statusFilter !== 'ENDORSED' && (
               <Button
                 key="endorse"
                 className="!bg-[#34515c] hover:!bg-[#2c3e50] !border-0"
@@ -529,6 +578,20 @@ const Endorsement: React.FC = () => {
                 Endorse
               </Button>
             ),
+            modalContent?.type === 'Posting & Appointment Letter' && statusFilter !== 'ENDORSED' && modalContent.id && (
+              <Button
+                key="reject-upload"
+                className="!bg-[#8a5a2b] !border-0"
+                type="primary"
+                onClick={() => {
+                  setRejectUploadIds([modalContent.id as number]);
+                  setRejectUploadReason('');
+                  setRejectUploadVisible(true);
+                }}
+              >
+                Reject upload
+              </Button>
+            ),
             <Button
               key="close"
               className="!bg-[#696767] hover:!bg-[#5f5d5d] !border-0"
@@ -537,16 +600,36 @@ const Endorsement: React.FC = () => {
               Close
             </Button>,
           ].filter(Boolean)}
-          width={800}
+          width={980}
           className="centered-modal"
         >
-          {modalContent?.url && (
+          {modalContent?.type === 'Posting & Appointment Letter' && statusFilter !== 'ENDORSED' && (
+            <div className="mb-3">
+              <Text className="block mb-1">Pages to endorse</Text>
+              <Input
+                value={endorsePages}
+                onChange={(e) => setEndorsePages(e.target.value)}
+                placeholder="4, 5"
+              />
+              <p className="text-xs text-[#625E5C] mt-1">
+                The date, signature, and stamp go on every page except the last one. The last page gets the board name, email, and phone numbers. Example: 4, 5.
+              </p>
+            </div>
+          )}
+          {modalContent?.url && modalContent.type === 'Posting & Appointment Letter' && statusFilter !== 'ENDORSED' ? (
+            <EndorsePreview
+              fileUrl={getAbsoluteUrl(modalContent.url)}
+              pages={parseEndorsePages(endorsePages).length ? parseEndorsePages(endorsePages) : [4, 5]}
+              placements={placements}
+              onChange={setPlacements}
+            />
+          ) : modalContent?.url ? (
             <iframe
               src={getAbsoluteUrl(modalContent.url)}
               style={{ width: '100%', height: '80vh', border: 'none' }}
               title={modalContent.type}
             />
-          )}
+          ) : null}
         </Modal>
         <Modal
           title="Confirm Endorsement"
@@ -558,7 +641,36 @@ const Endorsement: React.FC = () => {
           okButtonProps={{ className: '!bg-[#5B3418] !border-0' }}
           cancelButtonProps={{ className: '!bg-[#c95757] !border-0' }}
         >
-          <p>Are you sure you want to endorse {selectedRows.length} personnel?</p>
+          <p>Are you sure you want to endorse {selectedRows.length} personnel? The date, signature, stamp, and contact lines use the positions from the letter preview.</p>
+          <div className="mt-3">
+            <Text className="block mb-1">Pages to endorse</Text>
+            <Input
+              value={endorsePages}
+              onChange={(e) => setEndorsePages(e.target.value)}
+              placeholder="4, 5"
+            />
+          </div>
+        </Modal>
+        <Modal
+          title="Reject this upload"
+          open={rejectUploadVisible}
+          onOk={handleRejectUpload}
+          onCancel={() => setRejectUploadVisible(false)}
+          okText="Reject and email"
+          cancelText="Cancel"
+          confirmLoading={loading}
+          okButtonProps={{ className: '!bg-[#8a5a2b] !border-0' }}
+          cancelButtonProps={{ className: '!bg-[#c95757] !border-0' }}
+        >
+          <p className="mb-2">
+            The personnel keeps their account. They receive an email and can upload the correct PDF.
+          </p>
+          <Input.TextArea
+            rows={4}
+            value={rejectUploadReason}
+            onChange={(e) => setRejectUploadReason(e.target.value)}
+            placeholder="Say what is wrong with the document"
+          />
         </Modal>
         <Modal
           title="Confirm Rejection"
