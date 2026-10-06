@@ -150,10 +150,10 @@ const DepartmentPlacements: React.FC = () => {
       }
     };
 
-    if (role && ["ADMIN", "STAFF"].includes(role)) {
+    if (role && ["ADMIN", "SUPERADMIN", "STAFF"].includes(role)) {
       fetchDepartmentsAndPersonnel();
     }
-    if (role === "ADMIN") {
+    if (role === "ADMIN" || role === "SUPERADMIN") {
       fetchSupervisors();
     }
   }, [role]);
@@ -430,7 +430,7 @@ const DepartmentPlacements: React.FC = () => {
   };
 
   // Restrict to ADMIN or STAFF
-  if (!role || !["ADMIN", "STAFF"].includes(role)) {
+  if (!role || !["ADMIN", "SUPERADMIN", "STAFF"].includes(role)) {
     return (
       <div className="flex items-center justify-center h-full">
         <Text className="text-lg text-[#3C3939]">Access restricted.</Text>
@@ -525,7 +525,7 @@ const DepartmentPlacements: React.FC = () => {
         </h2>
         <div className="flex flex-col sm:flex-row justify-between mb-3 gap-2">
           <Space>
-            {role === "ADMIN" && (
+            {(role === "ADMIN" || role === "SUPERADMIN") && (
               <Button
                 type="primary"
                 icon={<PlusOutlined />}

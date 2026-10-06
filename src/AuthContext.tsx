@@ -8,12 +8,12 @@ import {
 } from "./lib/auth-session";
 
 interface AuthContextType {
-  role: "ADMIN" | "STAFF" | "SUPERVISOR" | "PERSONNEL" | null;
+  role: "ADMIN" | "SUPERADMIN" | "STAFF" | "SUPERVISOR" | "PERSONNEL" | null;
   userId: number | null;
   email: string | null;
   name: string | null;
   setRole: (
-    role: "ADMIN" | "STAFF" | "SUPERVISOR" | "PERSONNEL" | null,
+    role: "ADMIN" | "SUPERADMIN" | "STAFF" | "SUPERVISOR" | "PERSONNEL" | null,
   ) => void;
   logout: () => void;
   isLoading: boolean;
@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [role, setRole] = useState<
-    "ADMIN" | "STAFF" | "SUPERVISOR" | "PERSONNEL" | null
+    "ADMIN" | "SUPERADMIN" | "STAFF" | "SUPERVISOR" | "PERSONNEL" | null
   >(null);
   const [userId, setUserId] = useState<number | null>(null);
   const [email, setEmail] = useState<string | null>(null);

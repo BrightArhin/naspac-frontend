@@ -180,13 +180,15 @@ const Home: React.FC = () => {
 
   // Role-based dashboard content
   const renderDashboardContent = () => {
-    if (role === "ADMIN" || role === "STAFF") {
+    if (role === "ADMIN" || role === "SUPERADMIN" || role === "STAFF") {
       const dashboardTitle =
-        role === "ADMIN" ? "Admin Dashboard" : "Assistant Admin Dashboard";
+        role === "ADMIN" || role === "SUPERADMIN"
+          ? "Admin Dashboard"
+          : "Assistant Admin Dashboard";
 
       // Define card data based on role
       const cardData =
-        role === "ADMIN"
+        role === "ADMIN" || role === "SUPERADMIN"
           ? [
               {
                 title: "Personnel",
@@ -255,7 +257,7 @@ const Home: React.FC = () => {
                 <button
                   key={index}
                   type="button"
-                  className="rounded-xl border border-[#e6dfd6] bg-white p-5 text-left shadow-[0_1px_2px_rgba(44,36,31,0.04)] transition hover:border-[#d4c6b8]"
+                  className="cursor-pointer rounded-xl border border-[#e6dfd6] bg-white p-5 text-left shadow-[0_1px_2px_rgba(44,36,31,0.04)] transition hover:border-[#d4c6b8]"
                   onClick={() => navigate(card.route)}
                 >
                   <div className="flex items-start justify-between gap-3">

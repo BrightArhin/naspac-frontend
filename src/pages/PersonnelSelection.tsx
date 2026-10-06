@@ -110,7 +110,7 @@ const PersonnelSelection: React.FC = () => {
         toast.error("Failed to load shortlisted count");
       }
     };
-    if (role && ["ADMIN", "STAFF"].includes(role)) {
+    if (role && ["ADMIN", "SUPERADMIN", "STAFF"].includes(role)) {
       fetchShortlistedCount();
     }
   }, [role]);
@@ -410,7 +410,7 @@ const PersonnelSelection: React.FC = () => {
     }
   };
 
-  if (role !== "ADMIN" && role !== "STAFF") {
+  if (role !== "ADMIN" && role !== "SUPERADMIN" && role !== "STAFF") {
     return (
       <div className="flex items-center justify-center h-full">
         <Text className="text-lg text-[#3C3939]">Access restricted.</Text>
@@ -574,7 +574,7 @@ const PersonnelSelection: React.FC = () => {
             {selectedRows.length > 0 && (
               <Space>
                 <Text>{`${selectedRows.length} selected`}</Text>
-                {role === "ADMIN" && (
+                {(role === "ADMIN" || role === "SUPERADMIN") && (
                   <>
                     <Button
                       type="primary"

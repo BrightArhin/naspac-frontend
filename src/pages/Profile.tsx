@@ -11,6 +11,7 @@ import {
   Descriptions,
   Avatar,
   Input,
+  Select,
 } from "antd";
 import { UploadOutlined, UserOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -30,10 +31,11 @@ interface UserProfile {
 }
 
 const Profile: React.FC = () => {
-  const { role, userId } = useAuth();
+  const { role, userId, isLoading: authLoading } = useAuth();
   const [signatureLoading, setSignatureLoading] = useState(false);
   const [templateLoading, setTemplateLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [form] = Form.useForm();
   const [templateForm] = Form.useForm(); // Separate form for template
@@ -44,62 +46,67 @@ const Profile: React.FC = () => {
   const [stampFile, setStampFile] = useState<UploadFile | null>(null);
   const [templateFile, setTemplateFile] = useState<UploadFile | null>(null);
   const [templateName, setTemplateName] = useState<string>("");
-
-  //reload on page mount
-  useEffect(() => {
-    const hasReloaded = sessionStorage.getItem("reloaded");
-
-    if (!hasReloaded) {
-      sessionStorage.setItem("reloaded", "true");
-      window.location.reload();
-    }
-  }, []);
+  const [admins, setAdmins] = useState<{ id: number; name: string; staffId: string }[]>(
+    [],
+  );
+  const [assigneeId, setAssigneeId] = useState<number | null>(null);
 
   useEffect(() => {
+    if (authLoading || !userId) return;
+
+    let cancelled = false;
     const fetchProfile = async () => {
-      if (!userId) {
-        console.error("No userId provided");
-        message.error("User ID is missing. Please log in again.");
-        setProfileLoading(false);
-        return;
-      }
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        message.error("Authentication token missing. Please log in.");
-        setProfileLoading(false);
-        return;
-      }
-
       try {
         setProfileLoading(true);
-        const response = await axios.get("/users/profile", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("Response status:", response.status);
-        console.log("Profile data:", response.data);
-        if (response.status >= 200 && response.status < 300) {
-          const { name, email, role, nssNumber, staffId } = response.data;
-          setProfile({ name, email, role, nssNumber, staffId });
-        } else {
-          throw new Error(`Unexpected status code: ${response.status}`);
-        }
+        setProfileError(false);
+        const response = await axios.get("/users/profile");
+        if (cancelled) return;
+        const { name, email, role: profileRole, nssNumber, staffId } =
+          response.data;
+        setProfile({ name, email, role: profileRole, nssNumber, staffId });
       } catch (error: any) {
+        if (cancelled) return;
         console.error("Profile fetch error:", error);
+        setProfileError(true);
         message.error(
           error.response?.data?.message ||
             "Oops! We couldn’t load your profile. Please refresh the page.",
         );
       } finally {
-        setProfileLoading(false);
+        if (!cancelled) setProfileLoading(false);
       }
     };
 
     fetchProfile();
-  }, [userId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, userId]);
+
+  useEffect(() => {
+    if (role !== "SUPERADMIN") return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    axios
+      .get("/users/staff", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        const list = Array.isArray(response.data) ? response.data : [];
+        setAdmins(
+          list
+            .filter((person: { role?: string }) => person.role === "ADMIN")
+            .map((person: { id: number; name: string; staffId: string }) => ({
+              id: person.id,
+              name: person.name,
+              staffId: person.staffId,
+            })),
+        );
+      })
+      .catch(() => {
+        message.error("Could not load the admin list.");
+      });
+  }, [role]);
 
   // Handle file changes for signature
   const handleSignatureChange: UploadProps["onChange"] = ({
@@ -134,6 +141,11 @@ const Profile: React.FC = () => {
 
   // Handle form submission
   const handleUpload = async () => {
+    if (!assigneeId) {
+      message.error("Choose the admin who will use this signature and stamp.");
+      return;
+    }
+
     if (!signatureFile || !stampFile) {
       message.error("Please upload both a signature and a stamp.");
       return;
@@ -168,6 +180,7 @@ const Profile: React.FC = () => {
         stampFile.originFileObj,
         `stamp-${stampFile.name}`,
       );
+      formData.append("assigneeId", String(assigneeId));
     } catch (error) {
       console.error("Error creating FormData:", error);
       message.error("Failed to prepare files for upload.");
@@ -194,65 +207,13 @@ const Profile: React.FC = () => {
       form.resetFields();
       setSignatureFile(null);
       setStampFile(null);
+      setAssigneeId(null);
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
         "Failed to upload files. Please try again.";
       message.error(errorMessage);
-    } finally {
-      setSignatureLoading(false);
-    }
-  };
-
-  const handleStaffSignatureUpload = async () => {
-    if (
-      !signatureFile?.originFileObj ||
-      !(signatureFile.originFileObj instanceof File)
-    ) {
-      message.error("Please upload a signature.");
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      message.error("Please log in to upload files.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append(
-      "signature",
-      signatureFile.originFileObj,
-      signatureFile.name,
-    );
-
-    setSignatureLoading(true);
-    try {
-      const response = await axios.post(
-        "/users/upload-appointment-signature",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      message.success(
-        response.data.message || "Appointment letter signature saved",
-      );
-      toast.success(
-        response.data.message || "Appointment letter signature saved",
-      );
-      form.resetFields();
-      setSignatureFile(null);
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to upload signature. Please try again.";
-      message.error(errorMessage);
-      toast.error(errorMessage);
     } finally {
       setSignatureLoading(false);
     }
@@ -443,9 +404,9 @@ const Profile: React.FC = () => {
               </div>
             }
           >
-            {profileLoading ? (
+            {profileLoading || authLoading ? (
               <Text>Loading profile...</Text>
-            ) : profile && Object.keys(profile).length > 0 ? (
+            ) : profile ? (
               <Descriptions
                 column={{ xs: 1, sm: 2 }}
                 layout="vertical"
@@ -472,14 +433,16 @@ const Profile: React.FC = () => {
                   </Descriptions.Item>
                 )}
               </Descriptions>
-            ) : (
+            ) : profileError ? (
               <Text>
                 Oops! We couldn’t load your profile. Please refresh the page.
               </Text>
+            ) : (
+              <Text>Loading profile...</Text>
             )}
           </Card>
         </Col>
-        {role === "ADMIN" && (
+        {role === "SUPERADMIN" && (
           <>
             <Col xs={24} lg={16}>
               <Card
@@ -487,14 +450,14 @@ const Profile: React.FC = () => {
                 bodyStyle={{ padding: "32px", minHeight: "250px" }}
                 title={
                   <Title level={4} className="text-[#3C3939]">
-                    Upload Signature & Stamp
+                    Assign Endorsement Signature & Stamp
                   </Title>
                 }
               >
                 <Text type="secondary" className="block mb-4">
-                  This signature and stamp are placed on the posting letter when
-                  you endorse it. They are not printed on the appointment
-                  letter.
+                  Upload an admin’s signature and stamp, then assign them to
+                  that admin. They appear on the posting letter when that admin
+                  endorses it.
                 </Text>
                 <Form
                   form={form}
@@ -502,6 +465,20 @@ const Profile: React.FC = () => {
                   onFinish={handleUpload}
                   className="space-y-4"
                 >
+                  <Form.Item
+                    label={<Text strong>Assign to</Text>}
+                    required
+                  >
+                    <Select
+                      placeholder="Choose an admin"
+                      value={assigneeId ?? undefined}
+                      onChange={(value) => setAssigneeId(value)}
+                      options={admins.map((admin) => ({
+                        value: admin.id,
+                        label: `${admin.name} (${admin.staffId})`,
+                      }))}
+                    />
+                  </Form.Item>
                   <Form.Item
                     name="signature"
                     label={
@@ -648,6 +625,9 @@ const Profile: React.FC = () => {
                 </Form>
               </Card>
             </Col>
+          </>
+        )}
+        {(role === "ADMIN" || role === "SUPERADMIN") && (
             <Col xs={24} lg={16}>
               <Card
                 className="rounded-lg shadow-md bg-white bg-cover bg-center bg-no-repeat bg-opacity-10 border-none"
@@ -719,68 +699,6 @@ const Profile: React.FC = () => {
                 </Form>
               </Card>
             </Col>
-          </>
-        )}
-        {role === "STAFF" && (
-          <Col xs={24} lg={16}>
-            <Card
-              className="rounded-lg shadow-md bg-white border-none"
-              bodyStyle={{ padding: "32px", minHeight: "250px" }}
-              title={
-                <Title level={4} className="text-[#3C3939]">
-                  Upload Signature
-                </Title>
-              }
-            >
-              <Text type="secondary" className="block mb-4">
-                This signature is printed on the appointment letter when you
-                validate a personnel. It is separate from the signature an admin
-                uses to endorse a posting letter. If you leave it empty,
-                validation uses the appointment signature uploaded on the admin
-                profile.
-              </Text>
-              <Form
-                form={form}
-                layout="vertical"
-                onFinish={handleStaffSignatureUpload}
-                className="space-y-4"
-              >
-                <Form.Item
-                  name="signature"
-                  label={<Text strong>Signature (PNG/JPEG, Max 2MB)</Text>}
-                  rules={[
-                    { required: true, message: "Please upload a signature!" },
-                  ]}
-                  valuePropName="fileList"
-                  getValueFromEvent={(event) => event?.fileList}
-                >
-                  <Upload
-                    {...uploadProps}
-                    listType="picture"
-                    maxCount={1}
-                    onChange={handleSignatureChange}
-                  >
-                    <Button
-                      className="naspac-btn-secondary"
-                      icon={<UploadOutlined />}
-                    >
-                      Upload Signature
-                    </Button>
-                  </Upload>
-                </Form.Item>
-                <Form.Item>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    loading={signatureLoading}
-                    className="naspac-btn-primary"
-                  >
-                    Submit
-                  </Button>
-                </Form.Item>
-              </Form>
-            </Card>
-          </Col>
         )}
       </Row>
     </div>

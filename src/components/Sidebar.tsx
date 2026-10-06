@@ -178,13 +178,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     "4":
       role === "PERSONNEL"
         ? "/upload-nss-document"
-        : role === "ADMIN"
+        : role === "ADMIN" || role === "SUPERADMIN"
           ? "/endorsement"
           : "/manage-personnel",
     "5":
       role === "PERSONNEL"
         ? "/appointment-letter"
-        : role === "ADMIN"
+        : role === "ADMIN" || role === "SUPERADMIN"
           ? "/manage-personnel"
           : "/dept-placements",
     "6": "/send-letters",
@@ -198,7 +198,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
   // Role-based menu items
   const getMenuItems = () => {
-    if (role === "ADMIN") {
+    if (role === "ADMIN" || role === "SUPERADMIN") {
       return [
         {
           key: "1",

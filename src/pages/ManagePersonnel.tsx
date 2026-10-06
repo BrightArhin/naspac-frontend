@@ -102,7 +102,7 @@ const Endorsement: React.FC = () => {
         toast.error("Failed to load validated count");
       }
     };
-    if (role && ["ADMIN", "STAFF"].includes(role)) {
+    if (role && ["ADMIN", "SUPERADMIN", "STAFF"].includes(role)) {
       fetchValidatedCount();
     }
   }, [role]);
@@ -131,7 +131,7 @@ const Endorsement: React.FC = () => {
         setLoading(false);
       }
     };
-    if (role && ["ADMIN", "STAFF"].includes(role)) {
+    if (role && ["ADMIN", "SUPERADMIN", "STAFF"].includes(role)) {
       fetchSubmissions();
     }
   }, [role]);
@@ -375,7 +375,7 @@ const Endorsement: React.FC = () => {
     }
   };
 
-  if (!role || (role !== "ADMIN" && role !== "STAFF")) {
+  if (!role || (role !== "ADMIN" && role !== "SUPERADMIN" && role !== "STAFF")) {
     return (
       <div className="flex items-center justify-center h-full">
         <Text className="text-lg text-[#3C3939]">Access restricted.</Text>

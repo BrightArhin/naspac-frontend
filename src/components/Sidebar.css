@@ -49,7 +49,7 @@
 .sidebar-container .ant-menu-item-selected {
   background: rgba(255, 255, 255, 0.08) !important;
   color: #fff !important;
-  box-shadow: inset 2px 0 0 #c4a27a;
+  box-shadow: none !important;
 }
 
 .sidebar-container .ant-menu-item-selected .sidebar-icon,

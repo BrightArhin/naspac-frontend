@@ -45,10 +45,12 @@ const Notifications: React.FC<NotificationsProps> = ({
           },
         });
         const oneMonthAgo = moment().subtract(1, "month");
+        const audience = role === "SUPERADMIN" ? "ADMIN" : role;
         const filteredNotifications = response.data.filter(
           (notification: Notification) =>
-            (notification.role === role ||
-              (notification.userId === userId && notification.role === role)) &&
+            (notification.role === audience ||
+              (notification.userId === userId &&
+                notification.role === audience)) &&
             moment(notification.timestamp).isAfter(oneMonthAgo),
         );
         setNotifications(filteredNotifications);

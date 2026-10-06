@@ -101,6 +101,7 @@ const StaffLogin: React.FC = () => {
       } else if (
         data.accessToken &&
         (data.role === "ADMIN" ||
+          data.role === "SUPERADMIN" ||
           data.role === "STAFF" ||
           data.role === "SUPERVISOR")
       ) {
@@ -151,6 +152,7 @@ const StaffLogin: React.FC = () => {
       if (
         data.accessToken &&
         (data.role === "ADMIN" ||
+          data.role === "SUPERADMIN" ||
           data.role === "STAFF" ||
           data.role === "SUPERVISOR")
       ) {

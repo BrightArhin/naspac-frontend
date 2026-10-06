@@ -119,7 +119,7 @@ const Endorsement: React.FC = () => {
         toast.error("Failed to load endorsed count");
       }
     };
-    if (role && ["ADMIN", "STAFF"].includes(role)) {
+    if (role && ["ADMIN", "SUPERADMIN", "STAFF"].includes(role)) {
       fetchEndorsedCount();
     }
   }, [role]);
@@ -461,7 +461,7 @@ const Endorsement: React.FC = () => {
   };
 
   // Restrict to ADMIN
-  if (!role || role !== "ADMIN") {
+  if (!role || (role !== "ADMIN" && role !== "SUPERADMIN")) {
     return (
       <div className="flex items-center justify-center h-full">
         <Text className="text-lg text-[#3C3939]">Access restricted.</Text>

@@ -72,7 +72,7 @@ const StaffManagement: React.FC = () => {
         setLoading(false);
       }
     };
-    if (role === "ADMIN") {
+    if (role === "ADMIN" || role === "SUPERADMIN") {
       fetchStaff();
     }
   }, [role]);
@@ -209,7 +209,7 @@ const StaffManagement: React.FC = () => {
     }
   };
 
-  if (!role || role !== "ADMIN") {
+  if (!role || (role !== "ADMIN" && role !== "SUPERADMIN")) {
     return (
       <div className="flex items-center justify-center h-full">
         <Text className="text-lg text-[#3C3939]">Access restricted.</Text>

@@ -118,6 +118,7 @@ const PersonnelLogin: React.FC = () => {
         data.accessToken &&
         loginAsStaff &&
         (data.role === "ADMIN" ||
+          data.role === "SUPERADMIN" ||
           data.role === "STAFF" ||
           data.role === "SUPERVISOR")
       ) {
@@ -178,6 +179,7 @@ const PersonnelLogin: React.FC = () => {
         data.accessToken &&
         loginAsStaff &&
         (data.role === "ADMIN" ||
+          data.role === "SUPERADMIN" ||
           data.role === "STAFF" ||
           data.role === "SUPERVISOR")
       ) {
