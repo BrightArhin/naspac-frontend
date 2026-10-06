@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Select, Button, Typography, Modal, Form, Input, Space } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
-import { toast } from 'react-toastify';
-import { useAuth } from '../AuthContext';
-import '../components/PersonnelSelection.css';
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  Select,
+  Button,
+  Typography,
+  Modal,
+  Form,
+  Input,
+  Space,
+} from "antd";
+import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { toast } from "react-toastify";
+import { useAuth } from "../AuthContext";
+import "../components/PersonnelSelection.css";
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -19,7 +28,7 @@ interface Staff {
   name: string;
   email: string;
   phoneNumber: string; // Added phoneNumber to Staff interface
-  role: 'ADMIN' | 'STAFF' | 'SUPERVISOR';
+  role: "ADMIN" | "STAFF" | "SUPERVISOR";
   departmentsSupervised: Department[];
 }
 
@@ -27,7 +36,7 @@ const StaffManagement: React.FC = () => {
   const { role } = useAuth();
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [filteredStaffList, setFilteredStaffList] = useState<Staff[]>([]);
-  const [roleFilter, setRoleFilter] = useState<string>('All');
+  const [roleFilter, setRoleFilter] = useState<string>("All");
   const [loading, setLoading] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -37,7 +46,8 @@ const StaffManagement: React.FC = () => {
   const [editForm] = Form.useForm();
 
   // Define API base URL
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+  const apiBase =
+    import.meta.env.VITE_API_BASE_URL || "https://nss.cocobod.net";
 
   useEffect(() => {
     const fetchStaff = async () => {
@@ -45,8 +55,8 @@ const StaffManagement: React.FC = () => {
       try {
         const response = await fetch(`${apiBase}/users/staff`, {
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         const data: Staff[] = await response.json();
@@ -54,89 +64,110 @@ const StaffManagement: React.FC = () => {
           setStaffList(data);
           setFilteredStaffList(data);
         } else {
-          toast.error((data as any).message || 'Failed to load staff');
+          toast.error((data as any).message || "Failed to load staff");
         }
       } catch (error) {
-        toast.error('Failed to load staff');
+        toast.error("Failed to load staff");
       } finally {
         setLoading(false);
       }
     };
-    if (role === 'ADMIN') {
+    if (role === "ADMIN") {
       fetchStaff();
     }
   }, [role]);
 
   useEffect(() => {
     let filtered = staffList;
-    if (roleFilter !== 'All') {
+    if (roleFilter !== "All") {
       filtered = staffList.filter((s) => s.role === roleFilter);
     }
     setFilteredStaffList(filtered);
   }, [roleFilter, staffList]);
 
-  const handleCreateUser = async (values: { staffId: string; name: string; email: string; phoneNumber: string; role: string }) => {
+  const handleCreateUser = async (values: {
+    staffId: string;
+    name: string;
+    email: string;
+    phoneNumber: string;
+    role: string;
+  }) => {
     setLoading(true);
     try {
       const response = await fetch(`${apiBase}/auth/init-user`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify(values),
       });
       const data = await response.json();
       if (response.ok) {
-        setStaffList((prev) => [...prev, { ...data, departmentsSupervised: [] }]);
-        setFilteredStaffList((prev) => [...prev, { ...data, departmentsSupervised: [] }]);
+        setStaffList((prev) => [
+          ...prev,
+          { ...data, departmentsSupervised: [] },
+        ]);
+        setFilteredStaffList((prev) => [
+          ...prev,
+          { ...data, departmentsSupervised: [] },
+        ]);
         setCreateModalVisible(false);
         form.resetFields();
-        toast.success('User created successfully');
+        toast.success("User created successfully");
         window.location.reload();
       } else {
-        toast.error(data.message || 'Failed to create user');
+        toast.error(data.message || "Failed to create user");
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create user');
+      toast.error(error.message || "Failed to create user");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateUser = async (values: { staffId: string; name: string; email: string; phoneNumber: string; role: string }) => {
+  const handleUpdateUser = async (values: {
+    staffId: string;
+    name: string;
+    email: string;
+    phoneNumber: string;
+    role: string;
+  }) => {
     if (!selectedStaff) return;
 
     setLoading(true);
     try {
-      const response = await fetch(`${apiBase}/users/staff/${selectedStaff.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+      const response = await fetch(
+        `${apiBase}/users/staff/${selectedStaff.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(values),
         },
-        body: JSON.stringify(values),
-      });
+      );
       const data = await response.json();
       if (response.ok) {
         setStaffList((prev) =>
           prev.map((staff) =>
-            staff.id === selectedStaff.id ? { ...staff, ...data } : staff
-          )
+            staff.id === selectedStaff.id ? { ...staff, ...data } : staff,
+          ),
         );
         setFilteredStaffList((prev) =>
           prev.map((staff) =>
-            staff.id === selectedStaff.id ? { ...staff, ...data } : staff
-          )
+            staff.id === selectedStaff.id ? { ...staff, ...data } : staff,
+          ),
         );
         setEditModalVisible(false);
         editForm.resetFields();
-        toast.success('User updated successfully');
+        toast.success("User updated successfully");
       } else {
-        toast.error(data.message || 'Failed to update user');
+        toast.error(data.message || "Failed to update user");
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update user');
+      toast.error(error.message || "Failed to update user");
     } finally {
       setLoading(false);
     }
@@ -147,31 +178,38 @@ const StaffManagement: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${apiBase}/users/staff/${selectedStaff.id}/delete`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+      const response = await fetch(
+        `${apiBase}/users/staff/${selectedStaff.id}/delete`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         },
-      });
+      );
       if (response.ok) {
-        setStaffList((prev) => prev.filter((staff) => staff.id !== selectedStaff.id));
-        setFilteredStaffList((prev) => prev.filter((staff) => staff.id !== selectedStaff.id));
+        setStaffList((prev) =>
+          prev.filter((staff) => staff.id !== selectedStaff.id),
+        );
+        setFilteredStaffList((prev) =>
+          prev.filter((staff) => staff.id !== selectedStaff.id),
+        );
         setEditModalVisible(false);
         setConfirmDeleteVisible(false);
-        toast.success('User deleted successfully');
+        toast.success("User deleted successfully");
       } else {
         const data = await response.json();
-        toast.error(data.message || 'Failed to delete user');
+        toast.error(data.message || "Failed to delete user");
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete user');
+      toast.error(error.message || "Failed to delete user");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!role || role !== 'ADMIN') {
+  if (!role || role !== "ADMIN") {
     return (
       <div className="flex items-center justify-center h-full">
         <Text className="text-lg text-[#3C3939]">Access restricted.</Text>
@@ -181,37 +219,37 @@ const StaffManagement: React.FC = () => {
 
   const columns = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
       width: 120,
       ellipsis: true,
     },
     {
-      title: 'Staff ID',
-      dataIndex: 'staffId',
-      key: 'staffId',
+      title: "Staff ID",
+      dataIndex: "staffId",
+      key: "staffId",
       width: 100,
       ellipsis: true,
     },
     {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
       width: 160,
       ellipsis: true,
     },
     {
-      title: 'Phone',
-      dataIndex: 'phoneNumber', // Added Phone column
-      key: 'phoneNumber',
+      title: "Phone",
+      dataIndex: "phoneNumber", // Added Phone column
+      key: "phoneNumber",
       width: 120,
       ellipsis: true,
     },
     {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
       width: 70,
       render: (role: string) => (
         <span className={`status-${role.toLowerCase()}`}>
@@ -220,19 +258,19 @@ const StaffManagement: React.FC = () => {
       ),
     },
     {
-      title: 'Department',
-      dataIndex: 'departmentsSupervised',
-      key: 'department',
+      title: "Department",
+      dataIndex: "departmentsSupervised",
+      key: "department",
       width: 160,
       ellipsis: true,
       render: (departments: Department[]) =>
         departments.length > 0
-          ? departments.map((dept) => dept.name).join(', ')
-          : '',
+          ? departments.map((dept) => dept.name).join(", ")
+          : "",
     },
     {
-      title: 'Action',
-      key: 'action',
+      title: "Action",
+      key: "action",
       width: 50,
       ellipsis: true,
       render: (_: any, record: Staff) => (
@@ -258,7 +296,9 @@ const StaffManagement: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen px-2 py-4">
       <div className="w-full max-w-full mx-auto">
-        <h2 className="text-xl font-bold text-[#3C3939] mb-4 text-center">Staff Management</h2>
+        <h2 className="text-xl font-bold text-[#3C3939] mb-4 text-center">
+          Staff Management
+        </h2>
         <div className="flex flex-col sm:flex-row justify-between mb-3 gap-2">
           <Space>
             <Button
@@ -288,7 +328,7 @@ const StaffManagement: React.FC = () => {
           rowKey="id"
           loading={loading}
           className="rounded-md"
-          scroll={{ x: 'max-content' }}
+          scroll={{ x: "max-content" }}
           size="large"
           pagination={{ pageSize: 10 }}
         />
@@ -312,14 +352,14 @@ const StaffManagement: React.FC = () => {
             <Form.Item
               name="name"
               label="Full Name"
-              rules={[{ required: true, message: 'Please enter full name' }]}
+              rules={[{ required: true, message: "Please enter full name" }]}
             >
               <Input placeholder="Enter full name" />
             </Form.Item>
             <Form.Item
               name="staffId"
               label="Staff ID"
-              rules={[{ required: true, message: 'Please enter staff ID' }]}
+              rules={[{ required: true, message: "Please enter staff ID" }]}
             >
               <Input placeholder="Enter staff ID" />
             </Form.Item>
@@ -327,8 +367,8 @@ const StaffManagement: React.FC = () => {
               name="email"
               label="Email"
               rules={[
-                { required: true, message: 'Please enter email' },
-                { type: 'email', message: 'Please enter a valid email' },
+                { required: true, message: "Please enter email" },
+                { type: "email", message: "Please enter a valid email" },
               ]}
             >
               <Input placeholder="Enter email" />
@@ -337,10 +377,11 @@ const StaffManagement: React.FC = () => {
               name="phoneNumber"
               label="Phone Number"
               rules={[
-                { required: true, message: 'Please enter phone number' },
+                { required: true, message: "Please enter phone number" },
                 {
                   pattern: /^\+?\d{10,15}$/,
-                  message: 'Please enter a valid phone number (10-15 digits, optional +)',
+                  message:
+                    "Please enter a valid phone number (10-15 digits, optional +)",
                 },
               ]}
             >
@@ -349,7 +390,7 @@ const StaffManagement: React.FC = () => {
             <Form.Item
               name="role"
               label="Role"
-              rules={[{ required: true, message: 'Please select a role' }]}
+              rules={[{ required: true, message: "Please select a role" }]}
             >
               <Select placeholder="Select role">
                 <Option value="ADMIN">Admin</Option>
@@ -401,14 +442,14 @@ const StaffManagement: React.FC = () => {
             <Form.Item
               name="name"
               label="Full Name"
-              rules={[{ required: true, message: 'Please enter full name' }]}
+              rules={[{ required: true, message: "Please enter full name" }]}
             >
               <Input placeholder="Enter full name" />
             </Form.Item>
             <Form.Item
               name="staffId"
               label="Staff ID"
-              rules={[{ required: true, message: 'Please enter staff ID' }]}
+              rules={[{ required: true, message: "Please enter staff ID" }]}
             >
               <Input placeholder="Enter staff ID" />
             </Form.Item>
@@ -416,8 +457,8 @@ const StaffManagement: React.FC = () => {
               name="email"
               label="Email"
               rules={[
-                { required: true, message: 'Please enter email' },
-                { type: 'email', message: 'Please enter a valid email' },
+                { required: true, message: "Please enter email" },
+                { type: "email", message: "Please enter a valid email" },
               ]}
             >
               <Input placeholder="Enter email" />
@@ -426,10 +467,11 @@ const StaffManagement: React.FC = () => {
               name="phoneNumber"
               label="Phone Number"
               rules={[
-                { required: true, message: 'Please enter phone number' },
+                { required: true, message: "Please enter phone number" },
                 {
                   pattern: /^\+?\d{10,15}$/,
-                  message: 'Please enter a valid phone number (10-15 digits, optional +)',
+                  message:
+                    "Please enter a valid phone number (10-15 digits, optional +)",
                 },
               ]}
             >
@@ -438,7 +480,7 @@ const StaffManagement: React.FC = () => {
             <Form.Item
               name="role"
               label="Role"
-              rules={[{ required: true, message: 'Please select a role' }]}
+              rules={[{ required: true, message: "Please select a role" }]}
             >
               <Select placeholder="Select role">
                 <Option value="ADMIN">Admin</Option>
@@ -488,11 +530,18 @@ const StaffManagement: React.FC = () => {
           onOk={handleDeleteUser}
           onCancel={() => setConfirmDeleteVisible(false)}
           okText="Delete"
-          okButtonProps={{ danger: true, className: '!bg-[#b95a5a]', loading: loading }}
-          cancelButtonProps={{ disabled: loading, className: '!bg-[#999696]' }}
+          okButtonProps={{
+            danger: true,
+            className: "!bg-[#b95a5a]",
+            loading: loading,
+          }}
+          cancelButtonProps={{ disabled: loading, className: "!bg-[#999696]" }}
           className="centered-modal"
         >
-          <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+          <p>
+            Are you sure you want to delete this user? This action cannot be
+            undone.
+          </p>
         </Modal>
       </div>
     </div>

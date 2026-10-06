@@ -24,7 +24,15 @@ const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
 
   // carousel images
-   const images: string[] = ["/carousel-image-1.jpg", "/carousel-image-2.jpg", "/carousel-image-3.jpg", "/carousel-image-4.png", "/carousel-image-5.jpg", "/carousel-image-6.jpg", "/carousel-image-7.jpg"];
+  const images: string[] = [
+    "/carousel-image-1.jpg",
+    "/carousel-image-2.jpg",
+    "/carousel-image-3.jpg",
+    "/carousel-image-4.png",
+    "/carousel-image-5.jpg",
+    "/carousel-image-6.jpg",
+    "/carousel-image-7.jpg",
+  ];
 
   const nssNumber = searchParams.get("nssNumber");
   const token = searchParams.get("token");
@@ -88,19 +96,22 @@ const ResetPassword: React.FC = () => {
     }
 
     if (passwordStrength.score < 3) {
-      toast.error("Password is too weak. Must include 8+ characters, numbers, and letters.", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error(
+        "Password is too weak. Must include 8+ characters, numbers, and letters.",
+        {
+          position: "top-right",
+          autoClose: 3000,
+        },
+      );
       return;
     }
 
     setIsLoading(true);
 
     try {
-        const endpoint = nssNumber
-        ? "http://localhost:3000/auth/onboarding-reset-password"
-        : "http://localhost:3000/auth/forgot-password";
+      const endpoint = nssNumber
+        ? "https://nss.cocobod.net/auth/onboarding-reset-password"
+        : "https://nss.cocobod.net/auth/forgot-password";
       const payload = nssNumber
         ? { nssNumber, token, password, confirmPassword }
         : { token, password };
@@ -114,7 +125,8 @@ const ResetPassword: React.FC = () => {
       setTimeout(() => navigate("/login"), 2000);
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message || "Failed to reset password. Please try again.";
+        error.response?.data?.message ||
+        "Failed to reset password. Please try again.";
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 3000,
@@ -155,7 +167,10 @@ const ResetPassword: React.FC = () => {
           </div>
 
           {/* Reset Password Form */}
-          <form className="flex flex-col gap-3 sm:gap-4 md:gap-5" onSubmit={handleSubmit}>
+          <form
+            className="flex flex-col gap-3 sm:gap-4 md:gap-5"
+            onSubmit={handleSubmit}
+          >
             <div className="relative">
               <Input
                 className="text-black font-normal"
@@ -209,7 +224,9 @@ const ResetPassword: React.FC = () => {
               </button>
             </div>
             {password && (
-              <div className={`text-sm font-['Figtree',sans-serif] ${passwordStrength.color}`}>
+              <div
+                className={`text-sm font-['Figtree',sans-serif] ${passwordStrength.color}`}
+              >
                 Password Strength: {passwordStrength.label}
               </div>
             )}
@@ -265,7 +282,11 @@ const ResetPassword: React.FC = () => {
                 )}
               </button>
             </div>
-            <Button className="cursor-pointer" type="submit" disabled={isLoading}>
+            <Button
+              className="cursor-pointer"
+              type="submit"
+              disabled={isLoading}
+            >
               {isLoading ? "Resetting..." : "Reset Password"}
             </Button>
           </form>

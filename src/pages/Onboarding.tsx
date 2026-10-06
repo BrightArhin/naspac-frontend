@@ -53,7 +53,9 @@ const Onboarding: React.FC = () => {
       document.removeEventListener("contextmenu", preventContextMenu);
       document.removeEventListener("keydown", preventShortcuts);
       if (document.fullscreenElement) {
-        document.exitFullscreen().catch((err) => console.log("Exit fullscreen failed:", err));
+        document
+          .exitFullscreen()
+          .catch((err) => console.log("Exit fullscreen failed:", err));
       }
     };
   }, []);
@@ -90,10 +92,13 @@ const Onboarding: React.FC = () => {
 
     const phoneRegex = /^\+?\d{10,15}$/;
     if (!phoneRegex.test(phoneNumber)) {
-      toast.error("Please enter a valid phone number (10-15 digits, optional +)", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error(
+        "Please enter a valid phone number (10-15 digits, optional +)",
+        {
+          position: "top-right",
+          autoClose: 3000,
+        },
+      );
       return;
     }
 
@@ -116,20 +121,23 @@ const Onboarding: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:3000/auth/init-onboarding",
+        "https://nss.cocobod.net/auth/init-onboarding",
         { nssNumber, email, phoneNumber },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
           timeout: 20000,
-        }
+        },
       );
 
-      toast.success(response.data.message || "Onboarding link sent successfully!", {
-        position: "top-right",
-        autoClose: 2000,
-      });
+      toast.success(
+        response.data.message || "Onboarding link sent successfully!",
+        {
+          position: "top-right",
+          autoClose: 2000,
+        },
+      );
 
       setNssNumber("");
       setEmail("");
@@ -138,7 +146,8 @@ const Onboarding: React.FC = () => {
       const errorMessage =
         error.code === "ECONNABORTED"
           ? "Onboarding did not finish. The email service did not respond."
-          : error.response?.data?.message || "Failed to initiate onboarding. Please try again.";
+          : error.response?.data?.message ||
+            "Failed to initiate onboarding. Please try again.";
       toast.error(errorMessage, {
         position: "top-right",
         autoClose: 3000,
@@ -183,7 +192,10 @@ const Onboarding: React.FC = () => {
               Onboarding
             </h1>
           </div>
-          <form className="flex flex-col gap-3 sm:gap-4 md:gap-5" onSubmit={handleSubmit}>
+          <form
+            className="flex flex-col gap-3 sm:gap-4 md:gap-5"
+            onSubmit={handleSubmit}
+          >
             <Input
               className="text-black font-normal"
               placeholder="NSS Number*"
@@ -259,7 +271,11 @@ const Onboarding: React.FC = () => {
                 </svg>
               }
             />
-            <Button className="cursor-pointer" type="submit" disabled={isLoading}>
+            <Button
+              className="cursor-pointer"
+              type="submit"
+              disabled={isLoading}
+            >
               {isLoading ? "Submitting..." : "Submit"}
             </Button>
           </form>

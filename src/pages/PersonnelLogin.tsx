@@ -9,8 +9,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { useAuth } from "../AuthContext";
 import { SafetyOutlined } from "@ant-design/icons";
 
-const apiBase = "http://localhost:3000";
-// const apiBase = "https://nssapi.cocobod.net";
+const apiBase = "https://nss.cocobod.net";
 
 const PersonnelLogin: React.FC = () => {
   const [nssNumber, setNssNumber] = useState("");
@@ -118,10 +117,13 @@ const PersonnelLogin: React.FC = () => {
         setIs2FAStep(true);
         setResendAttempts(0);
         setResendCooldown(0);
-        toast.info("OTP sent to your email. Check your mail and enter the code.", {
-          position: "top-right",
-          autoClose: 10000,
-        });
+        toast.info(
+          "OTP sent to your email. Check your mail and enter the code.",
+          {
+            position: "top-right",
+            autoClose: 10000,
+          },
+        );
       } else if (
         data.accessToken &&
         loginAsStaff &&
