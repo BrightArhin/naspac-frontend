@@ -1,127 +1,95 @@
-/* Sidebar.css */
-
-/* Ensure Sider has the correct background and layout */
 .sidebar-container {
-  background: #5b3418 !important;
+  background: #241c18 !important;
   height: 100vh;
   position: sticky;
   top: 0;
   overflow-y: auto;
-  transition: width 0.3s ease;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Remove default Menu background and borders */
 .ant-menu {
   background: transparent !important;
   border: none !important;
 }
 
-/* Style navigation menu */
 .nav-menu {
-  margin-top: 1.5rem;
-  padding: 0 1rem;
+  margin-top: 0.75rem;
+  padding: 0 0.5rem;
 }
 
-/* Style settings menu */
 .settings-menu {
   margin-top: auto;
-  padding: 0 1rem;
+  padding: 0 0.5rem;
   position: absolute;
-  bottom: 2.5rem;
+  bottom: 3.25rem;
   width: 100%;
 }
 
-/* Style menu items */
-.ant-menu-item {
+.sidebar-container .ant-menu-item {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding: 0.5rem 1rem !important;
-  margin: 0.75rem 0 !important;
-  border-radius: 4px !important;
-  width: 100%;
-  color: white !important;
-  /* gap: 0.10rem; */
-  min-height: 2.5rem !important;
-  line-height: 1.5 !important;
-  transition: background-color 0.2s ease;
+  margin: 2px 8px !important;
+  width: calc(100% - 16px) !important;
+  border-radius: 8px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  color: rgba(255, 246, 238, 0.72) !important;
+  min-height: 36px !important;
 }
 
-/* Ensure consistent icon alignment in collapsed state */
-.ant-menu-item .ant-menu-item-icon {
-  display: flex;
-  justify-content: center;
-  width: 1.25rem; /* Fixed width for icons */
+.sidebar-container .ant-menu-item .ant-menu-item-icon,
+.sidebar-container .sidebar-icon {
+  font-size: 15px !important;
+  color: rgba(255, 246, 238, 0.78) !important;
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 10px !important;
 }
 
-/* Active menu item */
-.ant-menu-item-selected {
-  background-color: #754726 !important;
+.sidebar-container .ant-menu-item-selected {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  box-shadow: inset 2px 0 0 #c4a27a;
 }
 
-/* Hover effect for menu items */
-.ant-menu-item:hover {
-  background-color: #6b3e1d !important;
-  color: white !important;
+.sidebar-container .ant-menu-item-selected .sidebar-icon,
+.sidebar-container .ant-menu-item-selected .ant-menu-item-icon {
+  color: #fff !important;
 }
 
-/* Icon styling */
-.sidebar-icon {
-  font-size: 1.25rem !important;
-  color: white !important;
-  margin-right: 0.75rem !important;
-  transition: font-size 0.3s ease;
+.sidebar-container .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #fff !important;
 }
 
-/* Collapsed state adjustments */
 .ant-layout-sider-collapsed .ant-menu-item {
   justify-content: center;
-  padding: 0.5rem !important;
+  padding-inline: 0 !important;
 }
 
-.ant-layout-sider-collapsed .ant-menu-item .ant-menu-item-icon {
-  margin-right: 0 !important;
-}
-
-.ant-layout-sider-collapsed .sidebar-icon {
-  font-size: 1.5rem !important;
-  margin-left: 6px !important;
-}
-
-/* Logout button styling */
 .logout-button {
   position: absolute;
-  bottom: 0.5rem;
-  left: 1rem;
-  right: 1rem;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.ant-layout-sider-collapsed .logout-button {
-  justify-content: center;
-  padding: 0.5rem !important;
-}
-
-/* Ensure button has correct hover state */
-.ant-btn-default {
+  bottom: 0.75rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  height: 36px !important;
+  border-radius: 8px !important;
   background: transparent !important;
-  border-color: #a9a7a7 !important;
-  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 246, 238, 0.84) !important;
+  box-shadow: none !important;
 }
 
-.ant-btn-default:hover {
-  background-color: #6b3e1d !important;
-  border-color: #a9a7a7 !important;
-  color: white !important;
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
 }
 
-/* Ensure button icon stays white on hover */
-.ant-btn-default:hover .sidebar-icon {
-  color: white !important;
+.nav-menu .ant-menu-item-disabled .ant-menu-title-content {
+  color: rgba(255, 246, 238, 0.35) !important;
 }
 
-/* Phone: the menu is a drawer and does not take page width */
 @media (max-width: 767px) {
   .sidebar-container {
     position: fixed !important;
@@ -140,40 +108,14 @@
   .sidebar-container.mobile-open {
     transform: translateX(0);
   }
-
-  .ant-menu-item .truncate {
-    max-width: 180px;
-  }
 }
 
-/* Modern modal styling */
 .modern-modal .ant-modal-content {
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.modern-modal .ant-modal-header {
-  border-bottom: none;
-  padding-bottom: 0;
+  border-radius: 14px;
 }
 
 .modern-modal .ant-modal-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  color: #3C3939;
-}
-
-.modern-modal .ant-modal-body {
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.modern-modal .ant-modal-footer {
-  border-top: none;
-  padding-top: 20px;
-}
-
-.nav-menu .ant-menu-item-disabled .ant-menu-title-content {
-  color: #a9a7a7 !important;
-  opacity: 0.6;
+  color: #2c241f;
 }

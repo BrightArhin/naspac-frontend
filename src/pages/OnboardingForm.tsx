@@ -449,7 +449,7 @@ const OnboardingForm: React.FC = () => {
             >
               <Button
                 icon={<UploadOutlined />}
-                className="!border-[#6b3e1d] !bg-[#ffffff] !text-[#5B3418] hover:!bg-[#6b3e1d] hover:!text-white w-full"
+                className="w-full !border-[#8a8178] !bg-white !text-[#2c241f] hover:!bg-[#f7f4f0]"
               >
                 Upload Posting & Appointment Letter
               </Button>
@@ -461,7 +461,7 @@ const OnboardingForm: React.FC = () => {
               htmlType="submit"
               loading={isLoading}
               disabled={!canSubmit}
-              className="w-full !bg-[#5B3418] hover:!bg-[#6b3e1d]"
+              className="naspac-btn-primary w-full"
             >
               Submit
             </Button>

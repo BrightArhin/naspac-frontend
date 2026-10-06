@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Card from "../components/Card";
-import CardContent from "../components/CardContent";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import Carousel from "../components/Carousel";
+import AuthSplit from "../components/AuthSplit";
 
 const Onboarding: React.FC = () => {
   const [nssNumber, setNssNumber] = useState("");
@@ -16,59 +14,6 @@ const Onboarding: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const goFullScreen = () => {
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch((err) => {
-          console.log("Fullscreen request failed:", err);
-        });
-      }
-    };
-    goFullScreen();
-
-    const trapNavigation = () => {
-      window.history.pushState(null, "", window.location.href);
-    };
-    window.history.pushState(null, "", window.location.href);
-    window.addEventListener("popstate", trapNavigation);
-
-    const preventContextMenu = (e: Event) => e.preventDefault();
-    document.addEventListener("contextmenu", preventContextMenu);
-
-    const preventShortcuts = (e: KeyboardEvent) => {
-      if (
-        e.ctrlKey ||
-        e.altKey ||
-        ["F12", "Escape"].includes(e.key) ||
-        (e.metaKey && ["t", "n", "r"].includes(e.key.toLowerCase()))
-      ) {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener("keydown", preventShortcuts);
-
-    return () => {
-      window.removeEventListener("popstate", trapNavigation);
-      document.removeEventListener("contextmenu", preventContextMenu);
-      document.removeEventListener("keydown", preventShortcuts);
-      if (document.fullscreenElement) {
-        document
-          .exitFullscreen()
-          .catch((err) => console.log("Exit fullscreen failed:", err));
-      }
-    };
-  }, []);
-
-  const images: string[] = [
-    "/carousel-image-1.jpg",
-    "/carousel-image-2.jpg",
-    "/carousel-image-3.jpg",
-    "/carousel-image-4.png",
-    "/carousel-image-5.jpg",
-    "/carousel-image-6.jpg",
-    "/carousel-image-7.jpg",
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,11 +115,8 @@ const Onboarding: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-row justify-center w-full min-h-screen relative onboarding-container">
+    <AuthSplit embedded>
       <ToastContainer />
-      <Carousel images={images} />
-      <Card>
-        <CardContent className="p-4 sm:p-5 md:p-6">
           <div className="flex flex-col items-center mb-3 sm:mb-3 md:mb-4">
             <div className="flex justify-center gap-1 sm:gap-1.5 mb-1 sm:mb-2 md:mb-3">
               <img
@@ -188,9 +130,12 @@ const Onboarding: React.FC = () => {
                 src="/nss-logo.png"
               />
             </div>
-            <h1 className="font-['Figtree',sans-serif] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
-              Onboarding
+            <h1 className="font-['Figtree',sans-serif] text-2xl font-semibold tracking-tight text-[#2c241f]">
+              Onboard personnel
             </h1>
+            <p className="mt-1 text-center text-sm text-[#6f655c]">
+              Enter the NSS number, email, and phone. You can return to the dashboard from the menu.
+            </p>
           </div>
           <form
             className="flex flex-col gap-3 sm:gap-4 md:gap-5"
@@ -279,12 +224,10 @@ const Onboarding: React.FC = () => {
               {isLoading ? "Submitting..." : "Submit"}
             </Button>
           </form>
-        </CardContent>
-      </Card>
       {showModal && (
-        <div className="fixed inset-0 backdrop-blur-[30px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="font-['Figtree',sans-serif] font-semibold text-black text-xl text-center mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1c1410]/45 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-[#e6dfd6] bg-white p-6 shadow-[0_18px_50px_rgba(44,36,31,0.16)]">
+            <h2 className="mb-4 text-center font-['Figtree',sans-serif] text-xl font-semibold text-[#2c241f]">
               Confirm Details
             </h2>
             <p className="text-black mb-2">
@@ -299,15 +242,17 @@ const Onboarding: React.FC = () => {
             <p className="text-black mb-6">
               Are you sure you want to proceed with these details?
             </p>
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-3">
               <button
-                className="font-['Figtree',sans-serif] text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
+                type="button"
+                className="h-10 cursor-pointer rounded-lg border border-[#8a8178] bg-white px-4 font-['Figtree',sans-serif] text-sm font-medium text-[#2c241f] hover:bg-[#f7f4f0]"
                 onClick={handleCancel}
               >
                 Cancel
               </button>
               <button
-                className="font-['Figtree',sans-serif] text-sm bg-[#5b3418] text-white px-4 py-2 rounded hover:bg-[#7c838d] cursor-pointer"
+                type="button"
+                className="h-10 cursor-pointer rounded-lg border border-[#3c2a22] bg-[#3c2a22] px-4 font-['Figtree',sans-serif] text-sm font-medium text-white hover:bg-[#2e201a] disabled:opacity-60"
                 onClick={handleConfirm}
                 disabled={isLoading}
               >
@@ -317,7 +262,7 @@ const Onboarding: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </AuthSplit>
   );
 };
 

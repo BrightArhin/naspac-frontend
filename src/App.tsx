@@ -81,8 +81,10 @@ const MainLayout: React.FC = () => {
       )}
       <div className="flex min-w-0 flex-1 flex-col">
         <Header onMenuClick={() => setMobileNavOpen(true)} />
-        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-[#FCEEE9] p-3 sm:p-6 lg:p-8">
-          <Outlet />
+        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-[#f3f0eb] px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+          <div className="mx-auto w-full max-w-[1440px]">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
@@ -182,20 +184,20 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <Onboarding />
+                </ProtectedRoute>
+              }
+            />
         </Route>
         {/* Routes without Header and Sidebar */}
         <Route path="/login" element={<PersonnelLogin />} />
         <Route path="/staff-login" element={<StaffLogin />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route
-              path="/onboarding"
-              element={
-                <ProtectedRoute>
-                  <Onboarding/>
-                </ProtectedRoute>
-              }
-            />
       </Routes>
     </Router>
     </AuthProvider>

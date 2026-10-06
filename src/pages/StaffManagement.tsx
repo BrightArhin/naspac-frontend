@@ -296,7 +296,7 @@ const StaffManagement: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen px-2 py-4">
       <div className="w-full max-w-full mx-auto">
-        <h2 className="text-xl font-bold text-[#3C3939] mb-4 text-center">
+        <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#2c241f]">
           Staff Management
         </h2>
         <div className="flex flex-col sm:flex-row justify-between mb-3 gap-2">
@@ -305,7 +305,7 @@ const StaffManagement: React.FC = () => {
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => setCreateModalVisible(true)}
-              className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+              className="naspac-btn-primary"
             >
               Create User
             </Button>
@@ -404,12 +404,12 @@ const StaffManagement: React.FC = () => {
                   type="primary"
                   htmlType="submit"
                   loading={loading}
-                  className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+                  className="naspac-btn-primary"
                 >
                   Create
                 </Button>
                 <Button
-                  className="!bg-[#c95757] !border-0"
+                  className="naspac-btn-secondary"
                   onClick={() => {
                     setCreateModalVisible(false);
                     form.resetFields();
@@ -495,12 +495,12 @@ const StaffManagement: React.FC = () => {
                     type="primary"
                     htmlType="submit"
                     loading={loading}
-                    className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+                    className="naspac-btn-primary"
                   >
                     Update
                   </Button>
                   <Button
-                    className="!bg-[#999696] !border-0"
+                    className="naspac-btn-secondary"
                     onClick={() => {
                       setEditModalVisible(false);
                       setSelectedStaff(null);
@@ -511,7 +511,7 @@ const StaffManagement: React.FC = () => {
                   </Button>
                 </Space>
                 <Button
-                  className="!bg-[#b95a5a] !border-0"
+                  className="naspac-btn-danger"
                   danger
                   icon={<DeleteOutlined />}
                   onClick={() => setConfirmDeleteVisible(true)}
@@ -532,10 +532,10 @@ const StaffManagement: React.FC = () => {
           okText="Delete"
           okButtonProps={{
             danger: true,
-            className: "!bg-[#b95a5a]",
+            className: "naspac-btn-danger",
             loading: loading,
           }}
-          cancelButtonProps={{ disabled: loading, className: "!bg-[#999696]" }}
+          cancelButtonProps={{ disabled: loading, className: "naspac-btn-secondary" }}
           className="centered-modal"
         >
           <p>

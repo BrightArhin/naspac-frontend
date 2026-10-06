@@ -561,12 +561,12 @@ const PersonnelSelection: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen px-2 py-4">
-      <div className="w-full max-w-full mx-auto">
-        <h2 className="text-xl font-bold text-[#3C3939] mb-4 text-center">
+    <div className="flex min-w-0 flex-col">
+      <div className="mx-auto w-full max-w-full">
+        <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#2c241f]">
           Shortlist Personnel
         </h2>
-        <div className="flex flex-col sm:flex-row justify-between mb-3 gap-2">
+        <div className="mb-3 flex flex-col gap-3 rounded-xl border border-[#e6dfd6] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
           <Space>
             <Text className="text-base font-semibold text-[#5B3418] bg-amber-100 px-3 py-1 rounded-md">
               Total Shortlisted: {shortlistedCount}
@@ -579,14 +579,14 @@ const PersonnelSelection: React.FC = () => {
                     <Button
                       type="primary"
                       onClick={() => setShortlistModalVisible(true)}
-                      className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+                      className="naspac-btn-primary"
                     >
                       Shortlist
                     </Button>
                     <Button
                       type="primary"
                       onClick={() => setRejectModalVisible(true)}
-                      className="!bg-[#c95757] hover:!bg-[#b34646] !border-0"
+                      className="naspac-btn-danger"
                       icon={<FileExcelOutlined />}
                     >
                       Reject
@@ -600,7 +600,7 @@ const PersonnelSelection: React.FC = () => {
                     setRejectUploadReason("");
                     setRejectUploadVisible(true);
                   }}
-                  className="!bg-[#8a5a2b] hover:!bg-[#6b3e1d] !border-0"
+                  className="naspac-btn-danger"
                 >
                   Reject upload
                 </Button>
@@ -665,7 +665,7 @@ const PersonnelSelection: React.FC = () => {
           footer={[
             <Button
               key="download"
-              className="!bg-[#5B3418] !border-0"
+              className="naspac-btn-primary"
               type="default"
               onClick={handleDownload}
             >
@@ -674,7 +674,7 @@ const PersonnelSelection: React.FC = () => {
             modalContent?.id && (
               <Button
                 key="reject-upload"
-                className="!bg-[#8a5a2b] !border-0"
+                className="naspac-btn-danger"
                 type="primary"
                 onClick={() => {
                   setRejectUploadIds([modalContent.id as number]);
@@ -687,7 +687,7 @@ const PersonnelSelection: React.FC = () => {
             ),
             <Button
               key="close"
-              className="!bg-[#c95757] !border-0"
+              className="naspac-btn-secondary"
               onClick={() => setModalVisible(false)}
             >
               Close
@@ -715,10 +715,10 @@ const PersonnelSelection: React.FC = () => {
           okText="Confirm"
           cancelText="Cancel"
           okButtonProps={{
-            className: "!bg-[#5B3418] !text-white !border-0",
+            className: "naspac-btn-primary",
             disabled: !selectedDepartment,
           }}
-          cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <div className="flex flex-col gap-4">
             <p>
@@ -756,8 +756,8 @@ const PersonnelSelection: React.FC = () => {
           onCancel={() => setRejectModalVisible(false)}
           okText="Confirm"
           cancelText="Cancel"
-          okButtonProps={{ className: "!bg-[#5B3418] !text-white !border-0" }}
-          cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+          okButtonProps={{ className: "naspac-btn-primary" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <p>
             Are you sure you want to reject {selectedRows.length} personnel?
@@ -772,8 +772,8 @@ const PersonnelSelection: React.FC = () => {
           okText="Reject and email"
           cancelText="Cancel"
           confirmLoading={loading}
-          okButtonProps={{ className: "!bg-[#8a5a2b] !border-0" }}
-          cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+          okButtonProps={{ className: "naspac-btn-danger" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <p className="mb-2">
             Use this when the PDF is the wrong document. The personnel keeps

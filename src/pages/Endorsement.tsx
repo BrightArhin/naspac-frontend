@@ -592,7 +592,7 @@ const Endorsement: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen px-2 py-4">
       <div className="w-full max-w-full mx-auto">
-        <h2 className="text-xl font-bold text-[#3C3939] mb-4 text-center">
+        <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#2c241f]">
           Endorse Personnel
         </h2>
         <div className="flex flex-col sm:flex-row justify-between mb-3 gap-2">
@@ -606,14 +606,14 @@ const Endorsement: React.FC = () => {
                 <Button
                   type="primary"
                   onClick={beginEndorse}
-                  className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+                  className="naspac-btn-primary"
                 >
                   Endorse
                 </Button>
                 <Button
                   type="primary"
                   onClick={() => setRejectModalVisible(true)}
-                  className="!bg-[#c95757] hover:!bg-[#b34646] !border-0"
+                  className="naspac-btn-danger"
                   icon={<FileExcelOutlined />}
                 >
                   Reject
@@ -625,7 +625,7 @@ const Endorsement: React.FC = () => {
                     setRejectUploadReason("");
                     setRejectUploadVisible(true);
                   }}
-                  className="!bg-[#8a5a2b] hover:!bg-[#6b3e1d] !border-0"
+                  className="naspac-btn-danger"
                 >
                   Reject upload
                 </Button>
@@ -689,7 +689,7 @@ const Endorsement: React.FC = () => {
           footer={[
             <Button
               key="download"
-              className="!bg-[#5B3418] !border-0"
+              className="naspac-btn-primary"
               type="default"
               onClick={handleDownload}
             >
@@ -699,7 +699,7 @@ const Endorsement: React.FC = () => {
               statusFilter !== "ENDORSED" && (
                 <Button
                   key="endorse"
-                  className="!bg-[#34515c] hover:!bg-[#2c3e50] !border-0"
+                  className="naspac-btn-primary"
                   type="primary"
                   onClick={handleEndorse}
                   loading={loading}
@@ -714,7 +714,7 @@ const Endorsement: React.FC = () => {
               modalContent.id && (
                 <Button
                   key="reject-upload"
-                  className="!bg-[#8a5a2b] !border-0"
+                  className="naspac-btn-danger"
                   type="primary"
                   onClick={() => {
                     setRejectUploadIds([modalContent.id as number]);
@@ -727,7 +727,7 @@ const Endorsement: React.FC = () => {
               ),
             <Button
               key="close"
-              className="!bg-[#696767] hover:!bg-[#5f5d5d] !border-0"
+              className="naspac-btn-secondary"
               onClick={() => setModalVisible(false)}
             >
               Close
@@ -783,8 +783,8 @@ const Endorsement: React.FC = () => {
           onCancel={() => setShortlistModalVisible(false)}
           okText="Confirm"
           cancelText="Cancel"
-          okButtonProps={{ className: "!bg-[#5B3418] !border-0" }}
-          cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+          okButtonProps={{ className: "naspac-btn-primary" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <p>
             Are you sure you want to endorse {selectedRows.length} personnel?
@@ -808,8 +808,8 @@ const Endorsement: React.FC = () => {
           okText="Reject and email"
           cancelText="Cancel"
           confirmLoading={loading}
-          okButtonProps={{ className: "!bg-[#8a5a2b] !border-0" }}
-          cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+          okButtonProps={{ className: "naspac-btn-danger" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <p className="mb-2">
             The personnel keeps their account. They receive an email and can
@@ -829,8 +829,8 @@ const Endorsement: React.FC = () => {
           onCancel={() => setRejectModalVisible(false)}
           okText="Confirm"
           cancelText="Cancel"
-          okButtonProps={{ className: "!bg-[#5B3418] !text-white !border-0" }}
-          cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+          okButtonProps={{ className: "naspac-btn-primary" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <p>
             Are you sure you want to reject {selectedRows.length} personnel?

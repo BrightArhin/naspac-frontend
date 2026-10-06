@@ -36,7 +36,7 @@ const Carousel: React.FC<CarouselProps> = ({ images, interval = 7000 }) => {
           }}
         />
       ))}
-       <div className="absolute inset-0 z-10 bg-black/10"></div>
+       <div className="absolute inset-0 z-10 bg-[#1c1410]/55"></div>
     </div>
   );
 };

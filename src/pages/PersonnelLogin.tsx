@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Card from "../components/Card";
-import CardContent from "../components/CardContent";
 import Input from "../components/Input";
 import Button from "../components/Button";
-import Carousel from "../components/Carousel";
+import AuthSplit from "../components/AuthSplit";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { useAuth } from "../AuthContext";
@@ -30,16 +28,6 @@ const PersonnelLogin: React.FC = () => {
 
   const MAX_RESEND_ATTEMPTS = 3;
   const COOLDOWN_SECONDS = 180;
-
-  const images: string[] = [
-    "/carousel-image-1.jpg",
-    "/carousel-image-2.jpg",
-    "/carousel-image-3.jpg",
-    "/carousel-image-4.png",
-    "/carousel-image-5.jpg",
-    "/carousel-image-6.jpg",
-    "/carousel-image-7.jpg",
-  ];
 
   // Cooldown timer effect
   useEffect(() => {
@@ -290,12 +278,8 @@ const PersonnelLogin: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-row justify-center w-full min-h-screen relative">
+    <AuthSplit>
       <ToastContainer />
-      <Carousel images={images} />
-
-      <Card>
-        <CardContent className="p-4 sm:p-5 md:p-6">
           <div className="flex flex-col items-center mb-3 sm:mb-3 md:mb-4">
             <div className="flex justify-center gap-1 sm:gap-1.5 mb-1 sm:mb-2 md:mb-3">
               <img
@@ -309,9 +293,12 @@ const PersonnelLogin: React.FC = () => {
                 src="/nss-logo.png"
               />
             </div>
-            <h1 className="font-['Figtree',sans-serif] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
+            <h1 className="font-['Figtree',sans-serif] text-2xl font-semibold tracking-tight text-[#2c241f]">
               Welcome Back
             </h1>
+            <p className="mt-1 text-center text-sm text-[#6f655c]">
+              Sign in to continue your national service record.
+            </p>
           </div>
 
           <form
@@ -515,9 +502,7 @@ const PersonnelLogin: React.FC = () => {
                   : "Sign In"}
             </Button>
           </form>
-        </CardContent>
-      </Card>
-    </div>
+    </AuthSplit>
   );
 };
 

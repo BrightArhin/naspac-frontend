@@ -9,7 +9,7 @@ const Input: React.FC<InputProps> = ({ className = "", icon, ...props }) => {
   return (
     <div className="relative">
       <input
-        className={`h-[40px] sm:h-[45px] md:h-[50px] w-full rounded-[8px] border border-solid border-[#7c838d] pl-9 sm:pl-10 md:pl-11 pr-3 sm:pr-4 text-sm sm:text-base md:text-base font-medium font-['Figtree',sans-serif] text-[#7c838d] tracking-[-0.21px] sm:tracking-[-0.24px] placeholder-[#7c838d] ${className}`}
+        className={`h-11 w-full rounded-lg border border-[#e0d8d0] bg-white pl-10 pr-3 font-['Figtree',sans-serif] text-sm font-medium text-[#2c241f] placeholder:text-[#8a8178] focus:border-[#8a6844] focus:outline-none ${className}`}
         {...props}
       />
       {icon && (

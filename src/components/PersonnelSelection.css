@@ -16,8 +16,8 @@
   Input Styles
   ======================= */
 .ant-input-affix-wrapper {
-  background-color: #FFD6B3 !important;
-  border-color: #FFD6B3 !important;
+  background-color: #ffffff !important;
+  border-color: #e0d8d0 !important;
 }
 
 .ant-input::placeholder {
@@ -37,10 +37,15 @@
   Table Header Styles
   ======================= */
 .ant-table-thead > tr > th {
-  background-color: #5B3418 !important;
-  color: #FFFFFF !important;
+  background-color: #f7f4f0 !important;
+  color: #5c534c !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   border: none !important;
-  border-radius: 0% !important;
+  border-bottom: 1px solid #e6dfd6 !important;
+  border-radius: 0 !important;
   padding-left: 15px !important;
   padding-right: 15px !important;
   padding-top: 12px !important;
@@ -67,16 +72,13 @@
 /* =======================
   Table Row Styles
   ======================= */
-.ant-table-tbody > tr:nth-child(even) > td {
-  background-color: #FFFFFF !important;
-}
-
+.ant-table-tbody > tr:nth-child(even) > td,
 .ant-table-tbody > tr:nth-child(odd) > td {
-  background-color: #FFBE9D !important;
+  background-color: #ffffff !important;
 }
 
 .ant-table-tbody > tr:hover > td {
-  background-color: inherit !important;
+  background-color: #faf8f6 !important;
 }
 
 /* =======================

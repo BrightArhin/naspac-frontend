@@ -8,7 +8,7 @@ interface CardProps {
 const Card: React.FC<CardProps> = ({ children, className = "" }) => {
   return (
     <div
-      className={`h-fit w-[92%] max-w-[400px] self-center sm:max-w-[450px] md:max-w-[500px] mx-auto my-6 max-h-[calc(100dvh-2rem)] overflow-y-auto bg-[#f8f8f8] rounded-[16px] shadow-md z-20 relative ${className}`}
+      className={`relative z-20 mx-auto my-6 h-fit w-[92%] max-w-[440px] self-center overflow-y-auto rounded-2xl border border-[#e6dfd6] bg-white shadow-[0_12px_40px_rgba(28,20,16,0.18)] max-h-[calc(100dvh-2rem)] sm:max-w-[460px] ${className}`}
     >
       {children}
     </div>

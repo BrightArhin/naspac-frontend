@@ -520,7 +520,7 @@ const DepartmentPlacements: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen px-2 py-4">
       <div className="w-full max-w-full mx-auto">
-        <h2 className="text-xl font-bold text-[#3C3939] mb-4 text-center">
+        <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#2c241f]">
           Department Placements
         </h2>
         <div className="flex flex-col sm:flex-row justify-between mb-3 gap-2">
@@ -530,7 +530,7 @@ const DepartmentPlacements: React.FC = () => {
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => setCreateModalVisible(true)}
-                className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+                className="naspac-btn-primary"
               >
                 Create Dept.
               </Button>
@@ -541,7 +541,7 @@ const DepartmentPlacements: React.FC = () => {
                 <Button
                   type="primary"
                   onClick={() => setChangeDeptModalVisible(true)}
-                  className="!bg-[#6e6d6c] hover:!bg-[#504d4d] !border-0"
+                  className="naspac-btn-primary"
                 >
                   Change Dept.
                 </Button>
@@ -653,12 +653,12 @@ const DepartmentPlacements: React.FC = () => {
                       type="primary"
                       htmlType="submit"
                       loading={loading}
-                      className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+                      className="naspac-btn-primary"
                     >
                       Create
                     </Button>
                     <Button
-                      className="!bg-[#6e6d6c] hover:!bg-[#504d4d] !border-0"
+                      className="naspac-btn-secondary"
                       onClick={() => {
                         setCreateModalVisible(false);
                         setActiveTab("create");
@@ -737,13 +737,13 @@ const DepartmentPlacements: React.FC = () => {
                       type="primary"
                       htmlType="submit"
                       loading={loading}
-                      className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+                      className="naspac-btn-primary"
                     >
                       Update
                     </Button>
                     <Space>
                       <Button
-                        className="!bg-[#6e6d6c] hover:!bg-[#504d4d] !border-0"
+                        className="naspac-btn-secondary"
                         onClick={() => {
                           setCreateModalVisible(false);
                           setSelectedEditDepartment(null);
@@ -755,7 +755,7 @@ const DepartmentPlacements: React.FC = () => {
                       </Button>
                       <Button
                         icon={<DeleteOutlined />}
-                        className="!bg-[#c95757] !border-0"
+                        className="naspac-btn-danger"
                         onClick={handleDeleteDepartment}
                         disabled={!selectedEditDepartment}
                       >
@@ -779,10 +779,10 @@ const DepartmentPlacements: React.FC = () => {
           okText="Confirm"
           cancelText="Cancel"
           okButtonProps={{
-            className: "!bg-[#5B3418] !text-white !border-0",
+            className: "naspac-btn-primary",
             disabled: !selectedDepartment,
           }}
-          cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <div className="flex flex-col gap-4">
             <p>

@@ -526,7 +526,7 @@ const Profile: React.FC = () => {
                       onChange={handleSignatureChange}
                     >
                       <Button
-                        className="!bg-[#696867] hover:!bg-[#4e4e4d] text-white border-none"
+                        className="naspac-btn-secondary"
                         icon={<UploadOutlined />}
                       >
                         Upload Signature
@@ -556,7 +556,7 @@ const Profile: React.FC = () => {
                       onChange={handleStampChange}
                     >
                       <Button
-                        className="!bg-[#696867] hover:!bg-[#4e4e4d] text-white border-none"
+                        className="naspac-btn-secondary"
                         icon={<UploadOutlined />}
                       >
                         Upload Stamp
@@ -568,7 +568,7 @@ const Profile: React.FC = () => {
                       type="primary"
                       htmlType="submit"
                       loading={signatureLoading}
-                      className="!bg-[#775237] hover:!bg-[#754726] border-none"
+                      className="naspac-btn-primary"
                     >
                       Submit
                     </Button>
@@ -628,7 +628,7 @@ const Profile: React.FC = () => {
                       }}
                     >
                       <Button
-                        className="!bg-[#696867] hover:!bg-[#4e4e4d] text-white border-none"
+                        className="naspac-btn-secondary"
                         icon={<UploadOutlined />}
                       >
                         Upload Signature
@@ -640,7 +640,7 @@ const Profile: React.FC = () => {
                       type="primary"
                       htmlType="submit"
                       loading={signatureLoading}
-                      className="!bg-[#775237] hover:!bg-[#754726] border-none"
+                      className="naspac-btn-primary"
                     >
                       Submit
                     </Button>
@@ -699,7 +699,7 @@ const Profile: React.FC = () => {
                       fileList={templateFile ? [templateFile] : []}
                     >
                       <Button
-                        className="!bg-[#696867] hover:!bg-[#4e4e4d] text-white border-none"
+                        className="naspac-btn-secondary"
                         icon={<UploadOutlined />}
                       >
                         Upload Template
@@ -711,7 +711,7 @@ const Profile: React.FC = () => {
                       type="primary"
                       htmlType="submit"
                       loading={templateLoading}
-                      className="!bg-[#775237] hover:!bg-[#754726] border-none"
+                      className="naspac-btn-primary"
                     >
                       Submit Template
                     </Button>
@@ -761,7 +761,7 @@ const Profile: React.FC = () => {
                     onChange={handleSignatureChange}
                   >
                     <Button
-                      className="!bg-[#696867] hover:!bg-[#4e4e4d] text-white border-none"
+                      className="naspac-btn-secondary"
                       icon={<UploadOutlined />}
                     >
                       Upload Signature
@@ -773,7 +773,7 @@ const Profile: React.FC = () => {
                     type="primary"
                     htmlType="submit"
                     loading={signatureLoading}
-                    className="!bg-[#775237] hover:!bg-[#754726] border-none"
+                    className="naspac-btn-primary"
                   >
                     Submit
                   </Button>

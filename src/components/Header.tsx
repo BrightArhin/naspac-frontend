@@ -47,24 +47,24 @@ const Header: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
   );
 
   return (
-    <header className="sticky top-0 z-20 shrink-0 bg-white shadow-md text-stone-600 font-semibold">
-      <div className="flex justify-between items-center px-3 sm:px-6 lg:px-8 py-3">
+    <header className="sticky top-0 z-20 shrink-0 border-b border-[#e6dfd6] bg-[#f7f5f2] text-[#5c534c]">
+      <div className="flex items-center justify-between px-4 py-2.5 sm:px-6 lg:px-8">
         <button
           type="button"
           aria-label="Open menu"
           onClick={onMenuClick}
-          className="md:hidden inline-flex items-center justify-center rounded p-2 text-[#5b3418] hover:bg-gray-100"
+          className="inline-flex items-center justify-center rounded-md p-2 text-[#3c2a22] hover:bg-[#efeae4] md:hidden"
         >
           <MenuOutlined className="text-lg" />
         </button>
 
-        {/* Right Side: Profile, Name, Notifications */}
-        <div className="ml-auto flex items-center gap-3 sm:gap-5 lg:gap-7">
-          {/* Profile Icon and User Name */}
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
           <Dropdown overlay={profileMenu} trigger={['click']} placement="bottomRight">
-            <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
-              <UserOutlined className="text-base sm:text-lg" />
-              <span className="hidden sm:inline text-sm">
+            <div className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-[#efeae4]">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#efeae4] text-[#3c2a22]">
+                <UserOutlined className="text-sm" />
+              </span>
+              <span className="hidden text-sm font-medium text-[#2c241f] sm:inline">
                 {isLoading ? 'Loading...' : name || 'User'}
               </span>
             </div>
@@ -77,7 +77,7 @@ const Header: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
             placement="bottomRight"
             onOpenChange={(open) => open && setBadgeCount(0)} // Clear badge count when dropdown opens
           >
-            <div className="cursor-pointer hover:bg-gray-100 p-1 rounded">
+            <div className="cursor-pointer rounded-md p-2 hover:bg-[#efeae4]">
               <Badge
                 count={badgeCount}
                 offset={[0, 0]}

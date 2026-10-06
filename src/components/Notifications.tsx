@@ -201,11 +201,11 @@ const Notifications: React.FC<NotificationsProps> = ({
 
   return (
     <section>
-      <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-[#3C3939] mb-4">
+      <h3 className="mb-4 text-base font-semibold text-[#2c241f]">
         {role === "PERSONNEL" ? "Notifications" : "Recent Activity"}
       </h3>
       <Card
-        className="rounded-lg shadow-lg bg-white bg-[url('/background-pattern.svg')] bg-cover bg-center bg-no-repeat bg-opacity-10"
+        className="rounded-xl border border-[#e6dfd6] bg-white shadow-none"
         bodyStyle={{ padding: "24px" }}
       >
         {renderNotifications(

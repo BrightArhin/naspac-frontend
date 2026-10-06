@@ -490,13 +490,20 @@ const Sidebar: React.FC<SidebarProps> = ({
       collapsible
       collapsed={isMobile ? false : collapsed}
       trigger={null}
-      className={`sidebar-container bg-[#5b3418] rounded-tr-[25px] overflow-hidden z-40 ${mobileOpen ? "mobile-open" : ""}`}
+      className={`sidebar-container overflow-hidden z-40 ${mobileOpen ? "mobile-open" : ""}`}
       breakpoint="lg"
       onBreakpoint={(broken) => setCollapsed(broken)}
     >
-      <header className="flex justify-between items-center pt-4 px-4">
+      <header className="flex items-center justify-between px-4 pb-3 pt-5">
         {(!collapsed || isMobile) && (
-          <h1 className="font-medium text-white text-xl sm:text-2xl">NASPAC</h1>
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#c4a27a]">
+              COCOBOD
+            </p>
+            <h1 className="text-base font-semibold tracking-tight text-white">
+              NASPAC
+            </h1>
+          </div>
         )}
         <Button
           type="text"
@@ -552,7 +559,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       <Button
         type="default"
         onClick={handleLogout}
-        className="flex items-center gap-2 sm:gap-3 logout-button px-4 py-2 rounded-[5px] border-[#a9a7a7] text-white bg-transparent hover:bg-[#6b3e1d] hover:text-white hover:border-[#a9a7a7]"
+        className="logout-button flex items-center gap-2 px-3"
       >
         <LogoutOutlined className="sidebar-icon" />
         {(!collapsed || isMobile) && (
@@ -568,12 +575,9 @@ const Sidebar: React.FC<SidebarProps> = ({
         cancelText="Cancel"
         okButtonProps={{
           danger: true,
-          style: {
-            backgroundColor: "#dc2626",
-            border: "none",
-          },
+          className: "naspac-btn-danger",
         }}
-        cancelButtonProps={{ className: "text-white !border-0 !bg-gray-600" }}
+        cancelButtonProps={{ className: "naspac-btn-secondary" }}
         zIndex={10000}
       >
         <p>Are you sure you want to log out?</p>
@@ -585,8 +589,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         onCancel={() => setUploadModalVisible(false)}
         okText="Continue"
         cancelText="Cancel"
-        okButtonProps={{ className: "!bg-[#5B3418] !border-0" }}
-        cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+        okButtonProps={{ className: "naspac-btn-primary" }}
+        cancelButtonProps={{ className: "naspac-btn-secondary" }}
         centered
         className="modern-modal"
       >

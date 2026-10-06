@@ -76,7 +76,7 @@ const Onboarded: React.FC = () => {
   return (
     <div className="flex flex-col px-2 py-4">
       <div className="w-full max-w-full mx-auto">
-        <h2 className="text-xl font-bold text-[#3C3939] mb-4 text-center">
+        <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#2c241f]">
           Onboarded Personnel
         </h2>
         <div className="flex flex-col sm:flex-row justify-between mb-3 gap-2">

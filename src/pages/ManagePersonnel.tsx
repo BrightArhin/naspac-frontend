@@ -542,7 +542,7 @@ const Endorsement: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen px-2 py-4">
       <div className="w-full max-w-full mx-auto">
-        <h2 className="text-xl font-bold text-[#3C3939] mb-4 text-center">
+        <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#2c241f]">
           Manage Personnel
         </h2>
         <div className="flex flex-col sm:flex-row justify-between mb-3 gap-2">
@@ -565,7 +565,7 @@ const Endorsement: React.FC = () => {
             <Button
               icon={<FilterOutlined />}
               onClick={() => setFilterModalVisible(true)}
-              className="!bg-[#572707] hover:!bg-[#6b432f] !border-0"
+              className="naspac-btn-primary"
             >
               Filter
             </Button>
@@ -616,7 +616,7 @@ const Endorsement: React.FC = () => {
           footer={[
             <Button
               key="download"
-              className="!bg-[#5B3418] !border-0"
+              className="naspac-btn-primary"
               type="default"
               onClick={handleDownload}
             >
@@ -625,7 +625,7 @@ const Endorsement: React.FC = () => {
             modalContent?.type === "Verification Form" && (
               <Button
                 key="validate"
-                className="!bg-[#34515c] hover:!bg-[#2c3e50] !border-0"
+                className="naspac-btn-primary"
                 type="primary"
                 onClick={handleValidate}
                 loading={loading}
@@ -636,7 +636,7 @@ const Endorsement: React.FC = () => {
             modalContent?.type === "Verification Form" && modalContent.id && (
               <Button
                 key="reject-upload"
-                className="!bg-[#8a5a2b] !border-0"
+                className="naspac-btn-danger"
                 type="primary"
                 onClick={() => {
                   setRejectUploadId(modalContent.id as number);
@@ -649,7 +649,7 @@ const Endorsement: React.FC = () => {
             ),
             <Button
               key="close"
-              className="!bg-[#696767] hover:!bg-[#5f5d5d] !border-0"
+              className="naspac-btn-secondary"
               onClick={() => setModalVisible(false)}
             >
               Close
@@ -673,8 +673,8 @@ const Endorsement: React.FC = () => {
           onCancel={() => setShortlistModalVisible(false)}
           okText="Confirm"
           cancelText="Cancel"
-          okButtonProps={{ className: "!bg-[#5B3418] !border-0" }}
-          cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+          okButtonProps={{ className: "naspac-btn-primary" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <p>
             Are you sure you want to validate {selectedRows.length} personnel?
@@ -688,8 +688,8 @@ const Endorsement: React.FC = () => {
           okText="Reject and email"
           cancelText="Cancel"
           confirmLoading={loading}
-          okButtonProps={{ className: "!bg-[#8a5a2b] !border-0" }}
-          cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+          okButtonProps={{ className: "naspac-btn-danger" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <p className="mb-2">
             The personnel will receive an email and can upload the correct
@@ -709,8 +709,8 @@ const Endorsement: React.FC = () => {
           onCancel={() => setFilterModalVisible(false)}
           okText="Apply Filters"
           cancelText="Cancel"
-          okButtonProps={{ className: "!bg-[#5B3418] !border-0" }}
-          cancelButtonProps={{ className: "!bg-[#c95757] !border-0" }}
+          okButtonProps={{ className: "naspac-btn-primary" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
           width={600}
         >
           <Form form={filterForm} layout="vertical" onFinish={applyFilters}>
@@ -748,7 +748,7 @@ const Endorsement: React.FC = () => {
                 ))}
               </Select>
             </Form.Item>
-            <Button onClick={resetFilters} className="!bg-[#726e6e] !border-0">
+            <Button onClick={resetFilters} className="naspac-btn-secondary">
               Reset Filters
             </Button>
           </Form>
