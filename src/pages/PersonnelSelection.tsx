@@ -484,21 +484,25 @@ useEffect(() => {
             {selectedRows.length > 0 && (
               <Space>
                 <Text>{`${selectedRows.length} selected`}</Text>
-                <Button
-                  type="primary"
-                  onClick={() => setShortlistModalVisible(true)}
-                  className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
-                >
-                  Shortlist
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={() => setRejectModalVisible(true)}
-                  className="!bg-[#c95757] hover:!bg-[#b34646] !border-0"
-                  icon={<FileExcelOutlined />}
-                >
-                  Reject
-                </Button>
+                {role === 'ADMIN' && (
+                  <>
+                    <Button
+                      type="primary"
+                      onClick={() => setShortlistModalVisible(true)}
+                      className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+                    >
+                      Shortlist
+                    </Button>
+                    <Button
+                      type="primary"
+                      onClick={() => setRejectModalVisible(true)}
+                      className="!bg-[#c95757] hover:!bg-[#b34646] !border-0"
+                      icon={<FileExcelOutlined />}
+                    >
+                      Reject
+                    </Button>
+                  </>
+                )}
                 <Button
                   type="primary"
                   onClick={() => {

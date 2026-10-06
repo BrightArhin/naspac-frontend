@@ -196,7 +196,7 @@ const Home: React.FC = () => {
             value: reportData?.onboardedStudentCount || 0,
             icon: '/admin-hero-1.svg',
             gradient: 'bg-gradient-to-r from-[#8B5523] to-[#5B3418]',
-            route: '/onboarding',
+            route: '/onboarded',
           },
           {
             title: 'Personnel',
@@ -228,11 +228,11 @@ const Home: React.FC = () => {
           <h2 className="text-md sm:text-xl lg:text-2xl font-bold text-[#3C3939] mb-4">
             {dashboardTitle}
           </h2>
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 xl:grid-cols-4 gap-4">
             {cardData.map((card, index) => (
               <div
                 key={index}
-                className={`w-[280px] h-[120px] sm:w-[230px] sm:h-[140px] p-4 sm:p-6 rounded-md shadow ${card.gradient} transform transition-transform duration-200 hover:scale-105 cursor-pointer active:scale-95`}
+                className={`w-full min-h-[120px] sm:min-h-[140px] p-4 sm:p-6 rounded-md shadow ${card.gradient} cursor-pointer active:scale-95`}
                 onClick={() => navigate(card.route)}
               >
                 <div className="flex justify-between items-start h-full">
@@ -265,16 +265,16 @@ const Home: React.FC = () => {
           </h3>
           <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
             {/* Large Card for Personnel by Department */}
-            <div className="w-full lg:w-[460px] h-[300px] bg-gradient-to-br from-[#6B4F3A] to-[#3F2D1F] p-6 rounded-lg shadow-lg flex flex-col justify-between transform transition-transform duration-200 hover:scale-[1.02]">
+            <div className="w-full lg:w-[460px] min-h-[220px] sm:min-h-[300px] bg-gradient-to-br from-[#6B4F3A] to-[#3F2D1F] p-4 sm:p-6 rounded-lg shadow-lg flex flex-col justify-between">
               <div>
                 <h4 className="text-lg font-semibold text-white mb-4">
                   Personnel by Department
                 </h4>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <Select
                     value={selectedDepartment}
                     onChange={setSelectedDepartment}
-                    className="w-1/3"
+                    className="w-full sm:max-w-[220px]"
                     placeholder="Select Department"
                     loading={loading}
                     style={{ borderRadius: '8px' }}
@@ -285,7 +285,7 @@ const Home: React.FC = () => {
                       </Option>
                     ))}
                   </Select>
-                  <p className="text-9xl font-bold text-white ml-36">
+                  <p className="text-6xl sm:text-8xl font-bold text-white leading-none">
                     {loading
                       ? '...'
                       : reportData?.personnelByDepartment.find(
@@ -318,7 +318,7 @@ const Home: React.FC = () => {
               ].map((card, index) => (
                 <div
                   key={index}
-                  className="w-full h-[140px] bg-white p-4 sm:p-5 rounded-lg shadow transform transition-transform duration-200 hover:scale-105 hover:shadow-xl"
+                  className="w-full min-h-[120px] bg-white p-4 sm:p-5 rounded-lg shadow"
                 >
                   <h4 className="text-base sm:text-lg font-semibold text-[#625E5C] mb-2">
                     {card.title}
@@ -481,7 +481,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#FCEEE9] h-full p-4 sm:p-6 lg:p-8">
+    <div className="bg-[#FCEEE9] min-w-0">
       {renderDashboardContent()}
     </div>
   );

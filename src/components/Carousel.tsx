@@ -26,16 +26,17 @@ const Carousel: React.FC<CarouselProps> = ({ images, interval = 7000 }) => {
           src={image}
           style={{
             opacity: index === currentImage ? 1 : 0,
-            transform: index === currentImage ? "scale(1)" : "scale(1.05)",
+            transform: index === currentImage ? "scale(1.08)" : "scale(1.12)",
+            filter: "blur(18px)",
             position: "absolute",
             top: 0,
             left: 0,
-             width: "100%",
+            width: "100%",
             height: "100%",
           }}
         />
       ))}
-       <div className="absolute inset-0 backdrop-blur-[1px] z-10"></div>
+       <div className="absolute inset-0 z-10 bg-black/10"></div>
     </div>
   );
 };

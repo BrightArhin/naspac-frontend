@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Typography, Form, Upload, Button, message, Row, Col, Descriptions, Avatar, Input } from 'antd';
 import { UploadOutlined, UserOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { useAuth } from '../AuthContext';
 import type { UploadFile, UploadProps } from 'antd';
 import './Profile.css'
@@ -24,7 +25,9 @@ const [profileLoading, setProfileLoading] = useState(true);
 const [profile, setProfile] = useState<UserProfile | null>(null);
 const [form] = Form.useForm();
 const [templateForm] = Form.useForm(); // Separate form for template
+const [appointmentForm] = Form.useForm();
 const [signatureFile, setSignatureFile] = useState<UploadFile | null>(null);
+const [appointmentSignatureFile, setAppointmentSignatureFile] = useState<UploadFile | null>(null);
 const [stampFile, setStampFile] = useState<UploadFile | null>(null);
 const [templateFile, setTemplateFile] = useState<UploadFile | null>(null);
 const [templateName, setTemplateName] = useState<string>('');
@@ -195,13 +198,55 @@ useEffect(() => {
           },
         },
       );
-      message.success(response.data.message || 'Signature uploaded successfully.');
+      message.success(response.data.message || 'Appointment letter signature saved');
+      toast.success(response.data.message || 'Appointment letter signature saved');
       form.resetFields();
       setSignatureFile(null);
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Failed to upload signature. Please try again.';
       message.error(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setSignatureLoading(false);
+    }
+  };
+
+  const handleAppointmentSignatureUpload = async () => {
+    if (!appointmentSignatureFile?.originFileObj || !(appointmentSignatureFile.originFileObj instanceof File)) {
+      message.error('Please upload the appointment letter signature.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      message.error('Please log in to upload files.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('signature', appointmentSignatureFile.originFileObj, appointmentSignatureFile.name);
+
+    setSignatureLoading(true);
+    try {
+      const response = await axios.post(
+        'http://localhost:3000/users/upload-appointment-signature',
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      message.success(response.data.message || 'Appointment letter signature saved');
+      toast.success(response.data.message || 'Appointment letter signature saved');
+      appointmentForm.resetFields();
+      setAppointmentSignatureFile(null);
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Failed to upload signature. Please try again.';
+      message.error(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSignatureLoading(false);
     }
@@ -361,6 +406,9 @@ const handleTemplateUpload = async () => {
                 </Title>
               }
             >
+              <Text type="secondary" className="block mb-4">
+                This signature and stamp are placed on the posting letter when you endorse it. They are not printed on the appointment letter.
+              </Text>
               <Form
                 form={form}
                 layout="vertical"
@@ -420,6 +468,60 @@ const handleTemplateUpload = async () => {
                       icon={<UploadOutlined />}
                     >
                       Upload Stamp
+                    </Button>
+                  </Upload>
+                </Form.Item>
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={signatureLoading}
+                    className="!bg-[#775237] hover:!bg-[#754726] border-none"
+                  >
+                    Submit
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Card>
+          </Col>
+          <Col xs={24} lg={16}>
+            <Card
+              className="rounded-lg shadow-md bg-white border-none"
+              bodyStyle={{ padding: '32px', minHeight: '250px' }}
+              title={
+                <Title level={4} className="text-[#3C3939]">
+                  Appointment Letter Signature
+                </Title>
+              }
+            >
+              <Text type="secondary" className="block mb-4">
+                Upload the signature that is printed under “Yours sincerely” on the appointment letter. This is a different image from the signature used to endorse posting letters.
+              </Text>
+              <Form form={appointmentForm} layout="vertical" onFinish={handleAppointmentSignatureUpload} className="space-y-4">
+                <Form.Item
+                  name="appointmentSignature"
+                  label={<Text strong>Signature (PNG/JPEG, Max 2MB)</Text>}
+                  rules={[{ required: true, message: 'Please upload the appointment letter signature!' }]}
+                  valuePropName="fileList"
+                  getValueFromEvent={(event) => event?.fileList}
+                >
+                  <Upload
+                    {...uploadProps}
+                    listType="picture"
+                    maxCount={1}
+                    onChange={({ file, fileList }) => {
+                      if (file.status === 'removed' || fileList.length === 0) {
+                        setAppointmentSignatureFile(null);
+                        return;
+                      }
+                      setAppointmentSignatureFile(fileList[fileList.length - 1]);
+                    }}
+                  >
+                    <Button
+                      className="!bg-[#696867] hover:!bg-[#4e4e4d] text-white border-none"
+                      icon={<UploadOutlined />}
+                    >
+                      Upload Signature
                     </Button>
                   </Upload>
                 </Form.Item>
@@ -516,7 +618,7 @@ const handleTemplateUpload = async () => {
             }
           >
             <Text type="secondary" className="block mb-4">
-              This signature is placed on the job confirmation letter when you validate a personnel. If you leave it empty, validation uses an admin signature instead.
+              This signature is printed on the appointment letter when you validate a personnel. It is separate from the signature an admin uses to endorse a posting letter. If you leave it empty, validation uses the appointment signature uploaded on the admin profile.
             </Text>
             <Form form={form} layout="vertical" onFinish={handleStaffSignatureUpload} className="space-y-4">
               <Form.Item

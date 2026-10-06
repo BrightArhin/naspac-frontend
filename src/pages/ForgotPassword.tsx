@@ -70,7 +70,7 @@ const ForgotPassword: React.FC = () => {
       <Carousel images={images} />
 
       {/* Login Card */}
-      <Card className="max-h-[420px]">
+      <Card>
         <CardContent className="p-4 sm:p-5 md:p-6">
           {/* Logos and Welcome Text */}
           <div className="flex flex-col items-center mb-3 sm:mb-3 md:mb-4">
@@ -86,10 +86,10 @@ const ForgotPassword: React.FC = () => {
                 src="/nss-logo.png"
               />
             </div>
-            <h1 className="font-['Poppins',Helvetica] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
+            <h1 className="font-['Figtree',sans-serif] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
               Forgot your password?
             </h1>
-            <h3 className="font-['Poppins',Helvetica] font-normal text-black text-xs sm:text-xs md:text-xs tracking-[-0.3px] sm:tracking-[-0.36px] p-4 md:tracking-[-0.42px]">
+            <h3 className="font-['Figtree',sans-serif] font-normal text-black text-xs sm:text-xs md:text-xs tracking-[-0.3px] sm:tracking-[-0.36px] p-4 md:tracking-[-0.42px]">
               Enter your email so that we can send you password reset link
             </h3>
           </div>
@@ -135,7 +135,7 @@ const ForgotPassword: React.FC = () => {
                   e.preventDefault();
                   navigate(-1);
                 }}
-                className="font-['Poppins',Helvetica] text-xs sm:text-sm text-[#5b3418] hover:underline"
+                className="font-['Figtree',sans-serif] text-xs sm:text-sm text-[#5b3418] hover:underline"
               >
                 Back to login
               </a>

@@ -121,6 +121,8 @@ const DepartmentPlacements: React.FC = () => {
 
     if (role && ['ADMIN', 'STAFF'].includes(role)) {
       fetchDepartmentsAndPersonnel();
+    }
+    if (role === 'ADMIN') {
       fetchSupervisors();
     }
   }, [role]);
@@ -449,14 +451,16 @@ const DepartmentPlacements: React.FC = () => {
         <h2 className="text-xl font-bold text-[#3C3939] mb-4 text-center">Department Placements</h2>
         <div className="flex flex-col sm:flex-row justify-between mb-3 gap-2">
           <Space>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setCreateModalVisible(true)}
-              className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
-            >
-              Create Dept.
-            </Button>
+            {role === 'ADMIN' && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setCreateModalVisible(true)}
+                className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+              >
+                Create Dept.
+              </Button>
+            )}
             {selectedRows.length > 0 && (
               <Space>
                 <Text>{`${selectedRows.length} selected`}</Text>

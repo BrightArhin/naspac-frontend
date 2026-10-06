@@ -25,6 +25,7 @@ const StaffLogin: React.FC = () => {
   const { setRole } = useAuth();
   const navigate = useNavigate();
 
+
   const MAX_RESEND_ATTEMPTS = 3;
   const COOLDOWN_SECONDS = 180;
 
@@ -90,7 +91,7 @@ const StaffLogin: React.FC = () => {
         setIs2FAStep(true);
         setResendAttempts(0);
         setResendCooldown(0);
-        toast.info("OTP sent to your phone number. Please enter the code.", {
+        toast.info("OTP sent to your email. Check your mail and enter the code.", {
           position: "top-right",
           autoClose: 10000,
         });
@@ -216,7 +217,7 @@ const StaffLogin: React.FC = () => {
       const data = await response.json();
       setResendAttempts((prev) => prev + 1);
       setResendCooldown(COOLDOWN_SECONDS);
-      toast.success(data.message || "OTP resent to your phone.", {
+      toast.success(data.message || "OTP resent to your email.", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -235,7 +236,7 @@ const StaffLogin: React.FC = () => {
       <ToastContainer />
       <Carousel images={images} />
 
-      <Card className="max-h-[330px] sm:max-h-[400px] md:max-h-[420px]">
+      <Card>
         <CardContent className="p-4 sm:p-5 md:p-6">
           <div className="flex flex-col items-center mb-3 sm:mb-3 md:mb-4">
             <div className="flex justify-center gap-1 sm:gap-1.5 mb-1 sm:mb-2 md:mb-3">
@@ -250,7 +251,7 @@ const StaffLogin: React.FC = () => {
                 src="/nss-logo.png"
               />
             </div>
-            <h1 className="font-['Poppins',Helvetica] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
+            <h1 className="font-['Figtree',sans-serif] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
               Welcome Back
             </h1>
           </div>
@@ -261,6 +262,9 @@ const StaffLogin: React.FC = () => {
           >
             {is2FAStep ? (
               <>
+                <p className="text-center font-['Figtree',sans-serif] text-xs sm:text-sm text-[#5b3418]">
+                  Check your email for the OTP, then enter it here.
+                </p>
                 <Input
                   className="text-black font-normal"
                   placeholder="Enter OTP*"
@@ -275,7 +279,7 @@ const StaffLogin: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleResendOTP}
-                    className={`font-['Poppins',Helvetica] text-xs sm:text-sm text-[#5b3418] hover:underline cursor-pointer ${
+                    className={`font-['Figtree',sans-serif] text-xs sm:text-sm text-[#5b3418] hover:underline cursor-pointer ${
                       isLoading ||
                       resendCooldown > 0 ||
                       resendAttempts >= MAX_RESEND_ATTEMPTS
@@ -390,7 +394,7 @@ const StaffLogin: React.FC = () => {
                 <div className="text-right">
                   <a
                     href="/forgot-password"
-                    className="font-['Poppins',Helvetica] text-xs sm:text-sm text-[#5b3418] hover:underline"
+                    className="font-['Figtree',sans-serif] text-xs sm:text-sm text-[#5b3418] hover:underline"
                   >
                     Forgot Password?
                   </a>

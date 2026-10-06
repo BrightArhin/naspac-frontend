@@ -139,20 +139,34 @@ const EndorsePreview: React.FC<EndorsePreviewProps> = ({ fileUrl, pages, placeme
     window.addEventListener('pointerup', onUp);
   };
 
-  const resizeItem = (key: ItemKey, event: React.PointerEvent<HTMLButtonElement>) => {
+  const resizeItem = (key: ItemKey, event: React.PointerEvent<HTMLButtonElement>, isImage: boolean) => {
     event.stopPropagation();
     event.preventDefault();
-    const startSize = placementsRef.current[key].size || 16;
+    const handle = event.currentTarget;
+    handle.setPointerCapture(event.pointerId);
+    const start = placementsRef.current[key];
     const startX = event.clientX;
     const startY = event.clientY;
-    const scale = Math.max(fontScale, 1);
+    const stage = stageRef.current?.getBoundingClientRect();
+    const stageWidth = stage?.width || 1;
+    const stageHeight = stage?.height || 1;
     const onMove = (moveEvent: PointerEvent) => {
-      const delta = ((moveEvent.clientX - startX) + (moveEvent.clientY - startY)) / 2;
-      const size = Math.min(72, Math.max(10, Math.round(startSize + delta / scale)));
-      const next = {
-        ...placementsRef.current,
-        [key]: { ...placementsRef.current[key], size },
-      };
+      const current = placementsRef.current[key];
+      let nextBox: EndorseBox;
+      if (isImage) {
+        nextBox = {
+          ...current,
+          width: Math.min(0.85, Math.max(0.06, (start.width || 0.18) + (moveEvent.clientX - startX) / stageWidth)),
+          height: Math.min(0.6, Math.max(0.05, (start.height || 0.1) + (moveEvent.clientY - startY) / stageHeight)),
+        };
+      } else {
+        const pointsPerPixel = pageSize.pdfWidth / stageWidth;
+        nextBox = {
+          ...current,
+          size: Math.min(96, Math.max(10, Math.round((start.size || 16) + (moveEvent.clientX - startX + (moveEvent.clientY - startY)) * pointsPerPixel))),
+        };
+      }
+      const next = { ...placementsRef.current, [key]: nextBox };
       placementsRef.current = next;
       onChange(next);
     };
@@ -173,7 +187,7 @@ const EndorsePreview: React.FC<EndorsePreviewProps> = ({ fileUrl, pages, placeme
   return (
     <div>
       <p className="text-sm text-[#3C3939] mb-2">
-        Drag each item onto the page and release it where it should sit. Drag the corner of a text box to make that text larger or smaller. Endorse writes the spot and the size.
+        Drag a box to move it. Drag the brown corner on any box, including the stamp and signature, to make it larger or smaller.
         {pages.length > 1
           ? ` Page ${lastPage} is for the board name, email, and phone numbers. The other pages get the date, signature, and stamp.`
           : ' This page gets the date, signature, and stamp.'}
@@ -211,26 +225,33 @@ const EndorsePreview: React.FC<EndorsePreviewProps> = ({ fileUrl, pages, placeme
                     top: `${box.y * 100}%`,
                     width: isImage ? `${(box.width || 0.18) * 100}%` : 'auto',
                     height: isImage ? `${(box.height || 0.1) * 100}%` : 'auto',
-                    fontSize: isImage ? undefined : `${(box.size || 16) * fontScale}px`,
-                    lineHeight: 1,
-                    padding: isImage ? 0 : '2px 4px',
-                    fontWeight: item.key === 'company' ? 700 : 500,
+                    lineHeight: 1.1,
+                    padding: isImage ? 0 : '4px 8px',
+                    fontWeight: item.key === 'company' ? 700 : 600,
                   }}
                 >
                   {image ? (
-                    <img src={image} alt={item.label} className="w-full h-full object-contain pointer-events-none" />
+                    <img src={image} alt={item.label} className="h-full w-full object-contain pointer-events-none" />
                   ) : (
-                    item.label
+                    <span
+                      className="pointer-events-none block whitespace-nowrap text-[#5B3418]"
+                      style={{ fontSize: `${(box.size || 16) * fontScale}px`, lineHeight: 1.1 }}
+                    >
+                      {item.label}
+                    </span>
                   )}
-                  {!isImage && (
-                    <button
-                      type="button"
-                      aria-label={`Resize ${item.label}`}
-                      title="Drag to resize"
-                      onPointerDown={(event) => resizeItem(item.key, event)}
-                      className="absolute -bottom-1.5 -right-1.5 h-3 w-3 cursor-nwse-resize rounded-sm bg-[#5B3418]"
-                    />
+                  {isImage && (
+                    <span className="pointer-events-none absolute left-0 top-0 bg-[#5B3418] px-1 text-[10px] leading-4 text-white">
+                      {item.label}
+                    </span>
                   )}
+                  <button
+                    type="button"
+                    aria-label={`Resize ${item.label}`}
+                    title="Drag to enlarge or shrink"
+                    onPointerDown={(event) => resizeItem(item.key, event, isImage)}
+                    className="absolute -bottom-2 -right-2 z-10 h-4 w-4 cursor-nwse-resize rounded-sm border border-white bg-[#5B3418]"
+                  />
                 </div>
               );
             })}

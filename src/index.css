@@ -1,2 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Figtree", sans-serif;
+}
+
+html,
+body,
+#root,
+button,
+input,
+textarea,
+select,
+.ant-app,
+.ant-btn,
+.ant-input,
+.ant-select,
+.ant-table,
+.ant-modal,
+.ant-menu,
+.ant-form,
+.ant-card,
+.ant-dropdown,
+.ant-typography,
+.Toastify__toast {
+  font-family: "Figtree", sans-serif;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  .ant-modal {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    margin: 8px auto !important;
+    padding-bottom: 0 !important;
+  }
+
+  .ant-modal-body {
+    max-height: min(70vh, 70dvh);
+    overflow: auto;
+  }
+
+  .ant-space {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    max-width: 100%;
+  }
+
+  .ant-card-body {
+    padding: 16px !important;
+  }
+
+  .ant-table {
+    font-size: 13px;
+  }
+
+  .ant-descriptions-item-content,
+  .ant-descriptions-item-label {
+    word-break: break-word;
+  }
+}

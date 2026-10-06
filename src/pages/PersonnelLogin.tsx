@@ -118,7 +118,7 @@ const PersonnelLogin: React.FC = () => {
         setIs2FAStep(true);
         setResendAttempts(0);
         setResendCooldown(0);
-        toast.info("OTP sent to your phone number. Please enter the code.", {
+        toast.info("OTP sent to your email. Check your mail and enter the code.", {
           position: "top-right",
           autoClose: 10000,
         });
@@ -265,7 +265,7 @@ const PersonnelLogin: React.FC = () => {
       const data = await response.json();
       setResendAttempts((prev) => prev + 1);
       setResendCooldown(COOLDOWN_SECONDS);
-      toast.success(data.message || "OTP resent to your phone.", {
+      toast.success(data.message || "OTP resent to your email.", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -290,7 +290,7 @@ const PersonnelLogin: React.FC = () => {
       <ToastContainer />
       <Carousel images={images} />
 
-      <Card className="max-h-[380px] sm:max-h-[450px] md:max-h-[480px]">
+      <Card>
         <CardContent className="p-4 sm:p-5 md:p-6">
           <div className="flex flex-col items-center mb-3 sm:mb-3 md:mb-4">
             <div className="flex justify-center gap-1 sm:gap-1.5 mb-1 sm:mb-2 md:mb-3">
@@ -305,7 +305,7 @@ const PersonnelLogin: React.FC = () => {
                 src="/nss-logo.png"
               />
             </div>
-            <h1 className="font-['Poppins',Helvetica] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
+            <h1 className="font-['Figtree',sans-serif] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
               Welcome Back
             </h1>
           </div>
@@ -323,6 +323,9 @@ const PersonnelLogin: React.FC = () => {
           >
             {is2FAStep ? (
               <>
+                <p className="text-center font-['Figtree',sans-serif] text-xs sm:text-sm text-[#5b3418]">
+                  Check your email for the OTP, then enter it here.
+                </p>
                 <Input
                   className="text-black font-normal"
                   placeholder="Enter OTP*"
@@ -337,7 +340,7 @@ const PersonnelLogin: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleResendOTP}
-                    className={`font-['Poppins',Helvetica] text-xs sm:text-sm text-[#5b3418] hover:underline cursor-pointer ${
+                    className={`font-['Figtree',sans-serif] text-xs sm:text-sm text-[#5b3418] hover:underline cursor-pointer ${
                       isLoading ||
                       resendCooldown > 0 ||
                       resendAttempts >= MAX_RESEND_ATTEMPTS
@@ -453,11 +456,11 @@ const PersonnelLogin: React.FC = () => {
                     )}
                   </button>
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div
                     role="group"
                     aria-label="Login type"
-                    className="relative grid h-7 w-[180px] shrink-0 grid-cols-2 items-center rounded-full bg-[#efeae6] p-0.5"
+                    className="relative grid h-7 w-[148px] shrink-0 grid-cols-2 items-center rounded-full bg-[#efeae6] p-0.5 sm:w-[180px]"
                   >
                     <span
                       className="pointer-events-none absolute top-0.5 h-6 rounded-full bg-[#5b3418]"
@@ -469,7 +472,7 @@ const PersonnelLogin: React.FC = () => {
                     <button
                       type="button"
                       aria-pressed={!loginAsStaff}
-                      className={`relative z-10 flex-1 text-center font-['Poppins',Helvetica] text-[11px] sm:text-xs ${
+                      className={`relative z-10 flex-1 text-center font-['Figtree',sans-serif] text-[11px] sm:text-xs ${
                         loginAsStaff ? "text-[#5b3418]" : "text-white"
                       }`}
                       onClick={() => handleLoginModeChange(false)}
@@ -479,7 +482,7 @@ const PersonnelLogin: React.FC = () => {
                     <button
                       type="button"
                       aria-pressed={loginAsStaff}
-                      className={`relative z-10 flex-1 text-center font-['Poppins',Helvetica] text-[11px] sm:text-xs ${
+                      className={`relative z-10 flex-1 text-center font-['Figtree',sans-serif] text-[11px] sm:text-xs ${
                         loginAsStaff ? "text-white" : "text-[#5b3418]"
                       }`}
                       onClick={() => handleLoginModeChange(true)}
@@ -489,7 +492,7 @@ const PersonnelLogin: React.FC = () => {
                   </div>
                   <a
                     href="/forgot-password"
-                    className="font-['Poppins',Helvetica] text-xs sm:text-sm text-[#5b3418] hover:underline"
+                    className="font-['Figtree',sans-serif] text-xs sm:text-sm text-[#5b3418] hover:underline"
                   >
                     Forgot Password?
                   </a>

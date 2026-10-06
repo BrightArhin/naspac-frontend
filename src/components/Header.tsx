@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BellFilled, UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { BellFilled, UserOutlined, LogoutOutlined, MenuOutlined } from '@ant-design/icons';
 import { Badge, Dropdown, Menu, Avatar, Typography } from 'antd';
 import { useAuth } from '../AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +7,7 @@ import Notifications from './Notifications';
 
 const { Text } = Typography;
 
-const Header: React.FC = () => {
+const Header: React.FC<{ onMenuClick?: () => void }> = ({ onMenuClick }) => {
   const { name, email, role, logout, isLoading } = useAuth();
   const navigate = useNavigate();
   const [badgeCount, setBadgeCount] = useState(0);
@@ -23,7 +23,7 @@ const Header: React.FC = () => {
 
   // Profile Dropdown Content
   const profileMenu = (
-    <div className="w-70 bg-white shadow-lg rounded-lg p-4">
+    <div className="w-64 max-w-[90vw] bg-white shadow-lg rounded-lg p-4">
       <div className="flex items-center gap-3 mb-4">
         <Avatar size={40} icon={<UserOutlined />} />
         <div>
@@ -47,15 +47,19 @@ const Header: React.FC = () => {
   );
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 bg-white shadow-md text-stone-600 font-semibold">
-      <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 py-3 max-w-7xl mx-auto">
-        {/* Logo or Left Side */}
-        <div className="flex items-center">
-          <span className="text-xl font-bold"></span>
-        </div>
+    <header className="sticky top-0 z-20 shrink-0 bg-white shadow-md text-stone-600 font-semibold">
+      <div className="flex justify-between items-center px-3 sm:px-6 lg:px-8 py-3">
+        <button
+          type="button"
+          aria-label="Open menu"
+          onClick={onMenuClick}
+          className="md:hidden inline-flex items-center justify-center rounded p-2 text-[#5b3418] hover:bg-gray-100"
+        >
+          <MenuOutlined className="text-lg" />
+        </button>
 
         {/* Right Side: Profile, Name, Notifications */}
-        <div className="flex items-center gap-3 sm:gap-5 lg:gap-7">
+        <div className="ml-auto flex items-center gap-3 sm:gap-5 lg:gap-7">
           {/* Profile Icon and User Name */}
           <Dropdown overlay={profileMenu} trigger={['click']} placement="bottomRight">
             <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded">

@@ -54,6 +54,7 @@ const Endorsement: React.FC = () => {
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
   const [endorsePages, setEndorsePages] = useState('4, 5');
   const [placements, setPlacements] = useState<EndorsePlacements>(defaultEndorsePlacements);
+  const [endorseIds, setEndorseIds] = useState<number[]>([]);
   const [rejectUploadVisible, setRejectUploadVisible] = useState(false);
   const [rejectUploadReason, setRejectUploadReason] = useState('');
   const [rejectUploadIds, setRejectUploadIds] = useState<number[]>([]);
@@ -185,10 +186,25 @@ const Endorsement: React.FC = () => {
   };
 
   // Handle letter view
-  const showLetter = (url: string, type: string, id?: number) => {
-     console.log('Showing letter:', { url, type, id });
+  const showLetter = (url: string, type: string, id?: number, idsToEndorse?: number[]) => {
+    setEndorseIds(idsToEndorse && idsToEndorse.length ? idsToEndorse : id ? [id] : []);
     setModalContent({ url, type, id });
     setModalVisible(true);
+  };
+
+  const beginEndorse = () => {
+    const chosen = filteredSubmissions.filter((submission) => selectedRows.includes(submission.id));
+    const first = chosen.find((submission) => submission.appointmentLetterUrl || submission.postingLetterUrl);
+    if (!first) {
+      toast.error('Select a personnel who has a posting and appointment letter.');
+      return;
+    }
+    showLetter(
+      first.appointmentLetterUrl || first.postingLetterUrl,
+      'Posting & Appointment Letter',
+      first.id,
+      selectedRows,
+    );
   };
 
   // Handle download
@@ -201,39 +217,41 @@ const Endorsement: React.FC = () => {
 
   // Handle endorse action
  const handleEndorse = async () => {
-  if (!modalContent?.id) return;
-  if (parseEndorsePages(endorsePages).length === 0) {
+  const ids = endorseIds.length ? endorseIds : modalContent?.id ? [modalContent.id] : [];
+  if (ids.length === 0) return;
+  const pages = parseEndorsePages(endorsePages);
+  if (pages.length === 0) {
     toast.error('Enter the page numbers to endorse, for example 4, 5');
     return;
   }
-   console.log('Endorsing submission:', modalContent.id);
   setLoading(true);
   try {
-    const response = await fetch('http://localhost:3000/documents/sign', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify({
-        submissionId: modalContent.id,
-        documentType: 'appointmentLetter',
-        pages: parseEndorsePages(endorsePages),
-        placements,
-      }),
-    });
-    if (response.ok) {
-      // Update local state
-      setSubmissions((prev) => prev.filter((s) => s.id !== modalContent.id));
-        setFilteredSubmissions((prev) => prev.filter((s) => s.id !== modalContent.id));
-        setModalVisible(false);
-        setEndorsedCount((prev) => prev + 1);
-        toast.success('Appointment letter endorsed successfully');
-        window.location.reload();
-    } else {
-      const errorData = await response.json();
-      toast.error(errorData.message || 'Failed to endorse appointment letter');
+    for (const id of ids) {
+      const response = await fetch('http://localhost:3000/documents/sign', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          submissionId: id,
+          documentType: 'appointmentLetter',
+          pages,
+          placements,
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to endorse appointment letter');
+      }
     }
+    setSubmissions((prev) => prev.filter((s) => !ids.includes(s.id)));
+    setFilteredSubmissions((prev) => prev.filter((s) => !ids.includes(s.id)));
+    setSelectedRows((prev) => prev.filter((id) => !ids.includes(id)));
+    setModalVisible(false);
+    setEndorsedCount((prev) => prev + ids.length);
+    toast.success(ids.length === 1 ? 'Appointment letter endorsed successfully' : `${ids.length} appointment letters endorsed`);
+    window.location.reload();
   } catch (error: any) {
     toast.error(error.message || 'Failed to endorse appointment letter');
   } finally {
@@ -482,7 +500,7 @@ const Endorsement: React.FC = () => {
                 <Text>{`${selectedRows.length} selected`}</Text>
                 <Button
                   type="primary"
-                  onClick={() => setShortlistModalVisible(true)}
+                  onClick={beginEndorse}
                   className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
                 >
                   Endorse
@@ -575,7 +593,7 @@ const Endorsement: React.FC = () => {
                 onClick={handleEndorse}
                 loading={loading}
               >
-                Endorse
+                {endorseIds.length > 1 ? `Endorse ${endorseIds.length}` : 'Endorse'}
               </Button>
             ),
             modalContent?.type === 'Posting & Appointment Letter' && statusFilter !== 'ENDORSED' && modalContent.id && (
@@ -612,7 +630,8 @@ const Endorsement: React.FC = () => {
                 placeholder="4, 5"
               />
               <p className="text-xs text-[#625E5C] mt-1">
-                The date, signature, and stamp go on every page except the last one. The last page gets the board name, email, and phone numbers. Example: 4, 5.
+                Page 4 has separate boxes for the date, signature, and stamp. Page 5 has separate boxes for the board name, email, and each phone number.
+                {endorseIds.length > 1 ? ` These spots are saved on all ${endorseIds.length} selected letters when you click Endorse.` : ' Click Endorse after the boxes are in place.'}
               </p>
             </div>
           )}

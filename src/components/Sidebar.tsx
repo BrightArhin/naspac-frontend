@@ -20,9 +20,15 @@ interface PersonnelStatus {
   verificationRejectionReason?: string | null;
 }
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ mobileOpen = false, onMobileClose }) => {
    const { role, logout, userId } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 767px)').matches);
   const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false); // State for modal visibility
   const navigate = useNavigate();
   const [statusData, setStatusData] = useState<PersonnelStatus | null>(null);
@@ -213,17 +219,12 @@ const Sidebar: React.FC = () => {
     } else if (role === 'STAFF') {
       return [
         { key: '1', icon: <DashboardOutlined className="sidebar-icon" />, label: 'Dashboard' },
-        { key: '2', icon: <UserOutlined className="sidebar-icon" />, label: 'Onboard Personnel' },
+        { key: '2', icon: <UserOutlined className="sidebar-icon" />, label: 'Onboard NSP' },
         {
           key: '3',
-          icon: <img src="/select-personnel.svg" alt="Personnel Selection" className="sidebar-icon" />,
-          label: 'Shortlist Personnel',
+          icon: <img src="/select-personnel.svg" alt="Shortlist NSP" className="sidebar-icon" />,
+          label: 'Shortlist NSP',
         },
-        {
-        key: '6',
-        icon: <SendOutlined className="sidebar-icon" />,
-        label: 'Send Appt. Letters',
-      },
       {
           key: '4',
           icon: <img src="/manage.svg" alt="Manage Personnel" className="sidebar-icon" />,
@@ -231,8 +232,8 @@ const Sidebar: React.FC = () => {
         },
         {
           key: '5',
-          icon: <img src="/bank.svg" alt="Dept. Placements" className="sidebar-icon" />,
-          label: 'Dept. Placements',
+          icon: <img src="/bank.svg" alt="Dept Placement" className="sidebar-icon" />,
+          label: 'Dept Placement',
         },
         //   {
         //   key: '7', // Profile item
@@ -286,11 +287,23 @@ const Sidebar: React.FC = () => {
     // { key: '7', icon: <BellOutlined className="sidebar-icon" />, label: 'Notices' },
   ];
 
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)');
+    const onChange = () => setIsMobile(media.matches);
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
+
   const toggleCollapse = () => {
+    if (isMobile) {
+      onMobileClose?.();
+      return;
+    }
     setCollapsed(!collapsed);
   };
 
   const handleMenuClick = async ({ key }: { key: string }) => {
+    onMobileClose?.();
     if (role === 'PERSONNEL' && key === '3') {
       // Handle download for Endorsed Posting Letter
       try {
@@ -376,14 +389,14 @@ const Sidebar: React.FC = () => {
       width={240}
       collapsedWidth={80}
       collapsible
-      collapsed={collapsed}
+      collapsed={isMobile ? false : collapsed}
       trigger={null}
-      className="sidebar-container bg-[#5b3418] rounded-tr-[25px] overflow-hidden z-40"
+      className={`sidebar-container bg-[#5b3418] rounded-tr-[25px] overflow-hidden z-40 ${mobileOpen ? 'mobile-open' : ''}`}
       breakpoint="lg"
       onBreakpoint={(broken) => setCollapsed(broken)}
     >
       <header className="flex justify-between items-center pt-4 px-4">
-        {!collapsed && (
+        {(!collapsed || isMobile) && (
           <h1 className="font-medium text-white text-xl sm:text-2xl">
             NASPAC
           </h1>
@@ -404,7 +417,7 @@ const Sidebar: React.FC = () => {
           key: item.key,
           icon: item.icon,
           label: (
-            <Tooltip title={collapsed ? item.label : ''} placement="right">
+            <Tooltip title={!isMobile && collapsed ? item.label : ''} placement="right">
               <span className="font-medium text-white text-sm truncate">
                 {item.label}
               </span>
@@ -422,7 +435,7 @@ const Sidebar: React.FC = () => {
           key: item.key,
           icon: item.icon,
           label: (
-            <Tooltip title={collapsed ? item.label : ''} placement="right">
+            <Tooltip title={!isMobile && collapsed ? item.label : ''} placement="right">
               <span className="font-medium text-white text-sm truncate">
                 {item.label}
               </span>
@@ -437,7 +450,7 @@ const Sidebar: React.FC = () => {
         className="flex items-center gap-2 sm:gap-3 logout-button px-4 py-2 rounded-[5px] border-[#a9a7a7] text-white bg-transparent hover:bg-[#6b3e1d] hover:text-white hover:border-[#a9a7a7]"
       >
         <LogoutOutlined className="sidebar-icon" />
-        {!collapsed && (
+        {(!collapsed || isMobile) && (
           <span className="font-medium text-sm truncate">Logout</span>
         )}
       </Button>

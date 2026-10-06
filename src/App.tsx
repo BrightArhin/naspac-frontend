@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import PersonnelLogin from './pages/PersonnelLogin'
@@ -21,6 +22,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import SendAppointmentLetters from './pages/SendAppointmentLetters';
+import Onboarded from './pages/Onboarded';
 
 const centeredSpinStyle: React.CSSProperties = {
   display: 'flex',
@@ -46,8 +48,19 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 const MainLayout: React.FC = () => {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 768px)');
+    const closeDrawer = () => {
+      if (media.matches) setMobileNavOpen(false);
+    };
+    media.addEventListener('change', closeDrawer);
+    return () => media.removeEventListener('change', closeDrawer);
+  }, []);
+
   return (
-   <div className="flex min-h-screen">
+   <div className="flex h-dvh overflow-hidden">
     <ToastContainer  position="top-right"
       autoClose={5000}
       hideProgressBar={false}
@@ -57,15 +70,19 @@ const MainLayout: React.FC = () => {
       pauseOnFocusLoss
       draggable
       pauseOnHover/>
-      {/* Sidebar (visible on all screens) */}
-      <Sidebar />
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <Header />
-        {/* Page content */}
-        <main className="flex-1 p-4 bg-[#FCEEE9] sm:p-6 lg:p-8 mt-[35px] ml-[2px] collapsed:ml-[60px]">
-          <Outlet /> {/* Renders Home, Onboarding, etc. */}
+      <Sidebar mobileOpen={mobileNavOpen} onMobileClose={() => setMobileNavOpen(false)} />
+      {mobileNavOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Header onMenuClick={() => setMobileNavOpen(true)} />
+        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto bg-[#FCEEE9] p-3 sm:p-6 lg:p-8">
+          <Outlet />
         </main>
       </div>
     </div>
@@ -146,6 +163,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+             <Route
+              path="/onboarded"
+              element={
+                <ProtectedRoute>
+                  <Onboarded />
                 </ProtectedRoute>
               }
             />

@@ -164,7 +164,7 @@ const Onboarding: React.FC = () => {
     <div className="flex flex-row justify-center w-full min-h-screen relative onboarding-container">
       <ToastContainer />
       <Carousel images={images} />
-      <Card className="max-h-[420px]">
+      <Card>
         <CardContent className="p-4 sm:p-5 md:p-6">
           <div className="flex flex-col items-center mb-3 sm:mb-3 md:mb-4">
             <div className="flex justify-center gap-1 sm:gap-1.5 mb-1 sm:mb-2 md:mb-3">
@@ -179,7 +179,7 @@ const Onboarding: React.FC = () => {
                 src="/nss-logo.png"
               />
             </div>
-            <h1 className="font-['Poppins',Helvetica] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
+            <h1 className="font-['Figtree',sans-serif] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
               Onboarding
             </h1>
           </div>
@@ -268,7 +268,7 @@ const Onboarding: React.FC = () => {
       {showModal && (
         <div className="fixed inset-0 backdrop-blur-[30px] flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="font-['Poppins',Helvetica] font-semibold text-black text-xl text-center mb-4">
+            <h2 className="font-['Figtree',sans-serif] font-semibold text-black text-xl text-center mb-4">
               Confirm Details
             </h2>
             <p className="text-black mb-2">
@@ -285,13 +285,13 @@ const Onboarding: React.FC = () => {
             </p>
             <div className="flex justify-end gap-4">
               <button
-                className="font-['Poppins',Helvetica] text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
+                className="font-['Figtree',sans-serif] text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
                 onClick={handleCancel}
               >
                 Cancel
               </button>
               <button
-                className="font-['Poppins',Helvetica] text-sm bg-[#5b3418] text-white px-4 py-2 rounded hover:bg-[#7c838d] cursor-pointer"
+                className="font-['Figtree',sans-serif] text-sm bg-[#5b3418] text-white px-4 py-2 rounded hover:bg-[#7c838d] cursor-pointer"
                 onClick={handleConfirm}
                 disabled={isLoading}
               >

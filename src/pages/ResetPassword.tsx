@@ -133,7 +133,7 @@ const ResetPassword: React.FC = () => {
       <Carousel images={images} />
 
       {/* Reset Password Card */}
-      <Card className="max-h-[420px]">
+      <Card>
         <CardContent className="p-4 sm:p-5 md:p-6">
           {/* Logos and Welcome Text */}
           <div className="flex flex-col items-center mb-3 sm:mb-3 md:mb-4">
@@ -149,7 +149,7 @@ const ResetPassword: React.FC = () => {
                 src="/nss-logo.png"
               />
             </div>
-            <h1 className="font-['Poppins',Helvetica] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
+            <h1 className="font-['Figtree',sans-serif] font-semibold text-black text-xl sm:text-2xl md:text-[28px] tracking-[-0.3px] sm:tracking-[-0.36px] md:tracking-[-0.42px]">
               Reset Password
             </h1>
           </div>
@@ -209,7 +209,7 @@ const ResetPassword: React.FC = () => {
               </button>
             </div>
             {password && (
-              <div className={`text-sm font-['Poppins',Helvetica] ${passwordStrength.color}`}>
+              <div className={`text-sm font-['Figtree',sans-serif] ${passwordStrength.color}`}>
                 Password Strength: {passwordStrength.label}
               </div>
             )}

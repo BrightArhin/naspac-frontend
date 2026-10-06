@@ -121,53 +121,28 @@
   color: white !important;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Phone: the menu is a drawer and does not take page width */
+@media (max-width: 767px) {
   .sidebar-container {
-   width: 80px !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100dvh !important;
+    width: min(280px, 86vw) !important;
+    min-width: min(280px, 86vw) !important;
+    max-width: min(280px, 86vw) !important;
+    flex: none !important;
+    z-index: 50;
+    transform: translateX(-110%);
+    transition: transform 0.25s ease;
   }
 
-  .ant-menu-item {
-    padding: 0.5rem 0.75rem !important;
-    min-height: 2.25rem !important;
-  }
-
-  .sidebar-icon {
-    font-size: 1.1rem !important;
-  }
-
-  .logout-button {
-    left: 0.5rem;
-    right: 0.5rem;
-    padding: 0.5rem !important;
-  }
-
-  .nav-menu,
-  .settings-menu {
-    padding: 0 0.5rem;
+  .sidebar-container.mobile-open {
+    transform: translateX(0);
   }
 
   .ant-menu-item .truncate {
-    max-width: 150px; /* Prevent overflow on smaller screens */
-  }
-}
-
-@media (max-width: 480px) {
-  .sidebar-container {
-    width: 100% !important;
-    max-width: 260px !important;
-  }
-
-  .ant-menu-item {
-    padding: 0.5rem !important;
-  }
-
-  .sidebar-icon {
-    font-size: 1rem !important;
-  }
-
-  .ant-menu-item .truncate {
-    max-width: 100px;
+    max-width: 180px;
   }
 }
 
