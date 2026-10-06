@@ -39,14 +39,11 @@ const Notifications: React.FC<NotificationsProps> = ({
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await axios.get(
-          "https://nss.cocobod.net/documents/notifications",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+        const response = await axios.get("/documents/notifications", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+        });
         const oneMonthAgo = moment().subtract(1, "month");
         const filteredNotifications = response.data.filter(
           (notification: Notification) =>

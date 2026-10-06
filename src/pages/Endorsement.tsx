@@ -26,8 +26,9 @@ import {
   defaultEndorsePlacements,
   type EndorsePlacements,
 } from "../components/endorsePlacements";
+import { API_BASE_URL } from "../lib/api-config";
 
-const apiBase = import.meta.env.VITE_API_BASE_URL || "https://nss.cocobod.net";
+const apiBase = API_BASE_URL;
 const getAbsoluteUrl = (url: string) =>
   url && url.startsWith("http") ? url : `${apiBase}${url || ""}`;
 
@@ -98,19 +99,16 @@ const Endorsement: React.FC = () => {
   useEffect(() => {
     const fetchEndorsedCount = async () => {
       try {
-        const response = await fetch(
-          "https://nss.cocobod.net/users/submission-status-counts",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({
-              statuses: ["ENDORSED"],
-            }),
+        const response = await fetch("/users/submission-status-counts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+          body: JSON.stringify({
+            statuses: ["ENDORSED"],
+          }),
+        });
         const data = await response.json();
         if (response.ok) {
           setEndorsedCount(data.ENDORSED || 0);
@@ -131,15 +129,12 @@ const Endorsement: React.FC = () => {
     const fetchSubmissions = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://nss.cocobod.net/users/submissions",
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+        const response = await fetch("/users/submissions", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+        });
         const data: Submission[] = await response.json();
         if (response.ok) {
           // Filter for PENDING_ENDORSEMENT status only
@@ -295,7 +290,7 @@ const Endorsement: React.FC = () => {
     setLoading(true);
     try {
       for (const id of ids) {
-        const response = await fetch("https://nss.cocobod.net/documents/sign", {
+        const response = await fetch("/documents/sign", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -343,7 +338,7 @@ const Endorsement: React.FC = () => {
     setLoading(true);
     try {
       const updatePromises = selectedRows.map(async (id) => {
-        const response = await fetch("https://nss.cocobod.net/documents/sign", {
+        const response = await fetch("/documents/sign", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -389,20 +384,17 @@ const Endorsement: React.FC = () => {
     setLoading(true);
     try {
       const updatePromises = selectedRows.map(async (id) => {
-        const response = await fetch(
-          `https://nss.cocobod.net/users/update-submission-status/${id}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({
-              status: "REJECTED",
-              comment: "Rejected from personnel selection",
-            }),
+        const response = await fetch(`/users/update-submission-status/${id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+          body: JSON.stringify({
+            status: "REJECTED",
+            comment: "Rejected from personnel selection",
+          }),
+        });
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to reject personnel");

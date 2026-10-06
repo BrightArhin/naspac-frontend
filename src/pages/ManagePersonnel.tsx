@@ -22,8 +22,9 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { useAuth } from "../AuthContext";
 import "../components/PersonnelSelection.css";
+import { API_BASE_URL } from "../lib/api-config";
 
-const apiBase = import.meta.env.VITE_API_BASE_URL || "https://nss.cocobod.net";
+const apiBase = API_BASE_URL;
 const getAbsoluteUrl = (url: string) =>
   url && url.startsWith("http") ? url : `${apiBase}${url || ""}`;
 
@@ -81,19 +82,16 @@ const Endorsement: React.FC = () => {
   useEffect(() => {
     const fetchValidatedCount = async () => {
       try {
-        const response = await fetch(
-          "https://nss.cocobod.net/users/submission-status-counts",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({
-              statuses: ["VALIDATED", "COMPLETED"],
-            }),
+        const response = await fetch("/users/submission-status-counts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+          body: JSON.stringify({
+            statuses: ["VALIDATED", "COMPLETED"],
+          }),
+        });
         const data = await response.json();
         if (response.ok) {
           setValidatedCount((data.VALIDATED || 0) + (data.COMPLETED || 0));
@@ -114,15 +112,12 @@ const Endorsement: React.FC = () => {
     const fetchSubmissions = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          "https://nss.cocobod.net/users/total-submissions",
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+        const response = await fetch("/users/total-submissions", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+        });
         const data: Submission[] = await response.json();
         if (response.ok) {
           setSubmissions(data);
@@ -304,7 +299,7 @@ const Endorsement: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://nss.cocobod.net/users/update-submission-status/${modalContent.id}`,
+        `/users/update-submission-status/${modalContent.id}`,
         {
           method: "POST",
           headers: {
@@ -342,19 +337,16 @@ const Endorsement: React.FC = () => {
     setLoading(true);
     try {
       const updatePromises = selectedRows.map(async (id) => {
-        const response = await fetch(
-          `https://nss.cocobod.net/users/update-submission-status/${id}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({
-              status: "VALIDATED",
-            }),
+        const response = await fetch(`/users/update-submission-status/${id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+          body: JSON.stringify({
+            status: "VALIDATED",
+          }),
+        });
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(

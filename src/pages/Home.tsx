@@ -68,14 +68,11 @@ const Home: React.FC = () => {
   useEffect(() => {
     const fetchReportCounts = async () => {
       try {
-        const response = await axios.get(
-          "https://nss.cocobod.net/users/reports-counts",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+        const response = await axios.get("/users/reports-counts", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+        });
         setReportData(response.data);
         if (response.data.personnelByDepartment?.length > 0) {
           setSelectedDepartment(
@@ -96,17 +93,14 @@ const Home: React.FC = () => {
     const fetchPersonnelStatus = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(
-          "https://nss.cocobod.net/users/personnel-status",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            credentials: "include",
+        const response = await fetch("/users/personnel-status", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        );
+          credentials: "include",
+        });
 
         if (!response.ok) {
           throw new Error("Failed to fetch personnel status");
@@ -157,7 +151,7 @@ const Home: React.FC = () => {
     );
     try {
       const response = await fetch(
-        "https://nss.cocobod.net/users/replace-posting-appointment-letter",
+        "/users/replace-posting-appointment-letter",
         {
           method: "POST",
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },

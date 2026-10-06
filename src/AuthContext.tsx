@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import {
+  clearSessionTokens,
+  getAccessToken,
+  getRefreshToken,
+  SESSION_CLEARED_EVENT,
+} from "./lib/auth-session";
 
 interface AuthContextType {
   role: "ADMIN" | "STAFF" | "SUPERVISOR" | "PERSONNEL" | null;
@@ -34,27 +40,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [name, setName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const resetAuthState = () => {
+    setRole(null);
+    setUserId(null);
+    setEmail(null);
+    setName(null);
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
-      const token = localStorage.getItem("token");
+      const token = getAccessToken();
       if (!token) {
         setIsLoading(false);
         return;
       }
 
       try {
-        // Validate token
-        const validateResponse = await fetch(
-          "https://nss.cocobod.net/auth/validate",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            credentials: "include",
+        const validateResponse = await fetch("/auth/validate", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        );
+          credentials: "include",
+        });
         const validateData = await validateResponse.json();
 
         if (
@@ -71,18 +80,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setEmail(validateData.email || null);
         setName(validateData.name || null);
 
-        // Fetch latest profile data
-        const profileResponse = await fetch(
-          "https://nss.cocobod.net/users/profile",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            credentials: "include",
+        const profileResponse = await fetch("/users/profile", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        );
+          credentials: "include",
+        });
         const profileData = await profileResponse.json();
 
         if (profileResponse.ok) {
@@ -94,11 +99,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        localStorage.removeItem("token");
-        setRole(null);
-        setUserId(null);
-        setEmail(null);
-        setName(null);
+        clearSessionTokens();
+        resetAuthState();
         toast.error("Session expired or invalid. Please log in again.");
       } finally {
         setIsLoading(false);
@@ -106,24 +108,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     fetchUserData();
+
+    const handleSessionCleared = () => {
+      resetAuthState();
+      setIsLoading(false);
+    };
+
+    window.addEventListener(SESSION_CLEARED_EVENT, handleSessionCleared);
+    return () =>
+      window.removeEventListener(SESSION_CLEARED_EVENT, handleSessionCleared);
   }, []);
 
   const logout = async () => {
     try {
-      await fetch("https://nss.cocobod.net/auth/logout", {
+      await fetch("/auth/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken: getRefreshToken() || undefined }),
         credentials: "include",
       });
-      localStorage.removeItem("token");
-      setRole(null);
-      setUserId(null);
-      setEmail(null);
-      setName(null);
+      clearSessionTokens();
+      resetAuthState();
       toast.success("Logged out successfully");
       window.history.back();
     } catch (error) {
-      toast.error("Logout failed");
+      clearSessionTokens();
+      resetAuthState();
+      toast.error("Logout request failed. Local session cleared.");
     }
   };
 

@@ -66,12 +66,9 @@ const OnboardingForm: React.FC = () => {
   useEffect(() => {
     const fetchUniversities = async () => {
       try {
-        const response = await fetch(
-          "https://nss.cocobod.net/users/ghana-universities",
-          {
-            headers: { "Content-Type": "application/json" },
-          },
-        );
+        const response = await fetch("/users/ghana-universities", {
+          headers: { "Content-Type": "application/json" },
+        });
         const data = await response.json();
         setUniversities(data);
       } catch (error) {
@@ -92,16 +89,13 @@ const OnboardingForm: React.FC = () => {
           navigate("/login"); // Redirect to login if no token
           return;
         }
-        const response = await fetch(
-          "https://nss.cocobod.net/users/onboarding-status",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
+        const response = await fetch("/users/onboarding-status", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.message || "Failed to check onboarding status");
@@ -139,16 +133,13 @@ const OnboardingForm: React.FC = () => {
   const checkOnboardingStatus = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        "https://nss.cocobod.net/users/onboarding-status",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch("/users/onboarding-status", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || "Failed to check onboarding status");
@@ -215,16 +206,13 @@ const OnboardingForm: React.FC = () => {
     formData.append("files", letter, "postingAppointmentLetter.pdf");
 
     try {
-      const response = await fetch(
-        "https://nss.cocobod.net/users/submit-onboarding",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: formData,
+      const response = await fetch("/users/submit-onboarding", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      );
+        body: formData,
+      });
 
       const data = await response.json();
 

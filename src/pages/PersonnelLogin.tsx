@@ -8,8 +8,10 @@ import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import { useAuth } from "../AuthContext";
 import { SafetyOutlined } from "@ant-design/icons";
+import { API_BASE_URL } from "../lib/api-config";
+import { storeSessionTokens } from "../lib/auth-session";
 
-const apiBase = "https://nss.cocobod.net";
+const apiBase = API_BASE_URL;
 
 const PersonnelLogin: React.FC = () => {
   const [nssNumber, setNssNumber] = useState("");
@@ -131,7 +133,7 @@ const PersonnelLogin: React.FC = () => {
           data.role === "STAFF" ||
           data.role === "SUPERVISOR")
       ) {
-        localStorage.setItem("token", data.accessToken);
+        storeSessionTokens(data.accessToken, data.refreshToken);
         setRole(data.role);
         toast.success("Login successful!", {
           position: "top-right",
@@ -139,7 +141,7 @@ const PersonnelLogin: React.FC = () => {
         });
         navigate("/");
       } else if (data.accessToken && !loginAsStaff) {
-        localStorage.setItem("token", data.accessToken);
+        storeSessionTokens(data.accessToken, data.refreshToken);
         setRole("PERSONNEL");
         const hasSubmitted = await checkOnboardingStatus(data.accessToken);
         if (hasSubmitted === null) return;
@@ -191,7 +193,7 @@ const PersonnelLogin: React.FC = () => {
           data.role === "STAFF" ||
           data.role === "SUPERVISOR")
       ) {
-        localStorage.setItem("token", data.accessToken);
+        storeSessionTokens(data.accessToken, data.refreshToken);
         setRole(data.role);
         toast.success("2FA verification successful!", {
           position: "top-right",
@@ -199,7 +201,7 @@ const PersonnelLogin: React.FC = () => {
         });
         navigate("/");
       } else if (data.accessToken && !loginAsStaff) {
-        localStorage.setItem("token", data.accessToken);
+        storeSessionTokens(data.accessToken, data.refreshToken);
         setRole("PERSONNEL");
         const hasSubmitted = await checkOnboardingStatus(data.accessToken);
         if (hasSubmitted === null) return;

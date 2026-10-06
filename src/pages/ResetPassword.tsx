@@ -110,8 +110,8 @@ const ResetPassword: React.FC = () => {
 
     try {
       const endpoint = nssNumber
-        ? "https://nss.cocobod.net/auth/onboarding-reset-password"
-        : "https://nss.cocobod.net/auth/forgot-password";
+        ? "/auth/onboarding-reset-password"
+        : "/auth/forgot-password";
       const payload = nssNumber
         ? { nssNumber, token, password, confirmPassword }
         : { token, password };

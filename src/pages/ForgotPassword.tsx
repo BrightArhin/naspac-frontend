@@ -47,10 +47,9 @@ const ForgotPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(
-        "https://nss.cocobod.net/auth/request-forgot-password",
-        { email },
-      );
+      const response = await axios.post("/auth/request-forgot-password", {
+        email,
+      });
 
       toast.success(
         response.data.message ||

@@ -73,15 +73,12 @@ const Profile: React.FC = () => {
 
       try {
         setProfileLoading(true);
-        const response = await axios.get(
-          "https://nss.cocobod.net/users/profile",
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
+        const response = await axios.get("/users/profile", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
         console.log("Response status:", response.status);
         console.log("Profile data:", response.data);
         if (response.status >= 200 && response.status < 300) {
@@ -185,16 +182,12 @@ const Profile: React.FC = () => {
 
     setSignatureLoading(true);
     try {
-      const response = await axios.post(
-        "https://nss.cocobod.net/users/upload-signage",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await axios.post("/users/upload-signage", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
       message.success(
         response.data.message || "Signature and stamp uploaded successfully.",
       );
@@ -237,7 +230,7 @@ const Profile: React.FC = () => {
     setSignatureLoading(true);
     try {
       const response = await axios.post(
-        "https://nss.cocobod.net/users/upload-appointment-signature",
+        "/users/upload-appointment-signature",
         formData,
         {
           headers: {
@@ -290,7 +283,7 @@ const Profile: React.FC = () => {
     setSignatureLoading(true);
     try {
       const response = await axios.post(
-        "https://nss.cocobod.net/users/upload-appointment-signature",
+        "/users/upload-appointment-signature",
         formData,
         {
           headers: {
@@ -358,7 +351,7 @@ const Profile: React.FC = () => {
     setTemplateLoading(true);
     try {
       const response = await axios.post(
-        "https://nss.cocobod.net/documents/upload-template",
+        "/documents/upload-template",
         formData,
         {
           headers: {

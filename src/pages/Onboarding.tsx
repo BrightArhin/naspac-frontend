@@ -121,7 +121,7 @@ const Onboarding: React.FC = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "https://nss.cocobod.net/auth/init-onboarding",
+        "/auth/init-onboarding",
         { nssNumber, email, phoneNumber },
         {
           headers: {

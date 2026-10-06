@@ -8,8 +8,10 @@ import Button from "../components/Button";
 import Carousel from "../components/Carousel";
 import { useAuth } from "../AuthContext";
 import { SafetyOutlined } from "@ant-design/icons";
+import { API_BASE_URL } from "../lib/api-config";
+import { storeSessionTokens } from "../lib/auth-session";
 
-const apiBase = "https://nss.cocobod.net";
+const apiBase = API_BASE_URL;
 
 const StaffLogin: React.FC = () => {
   const [staffId, setStaffId] = useState("");
@@ -102,7 +104,7 @@ const StaffLogin: React.FC = () => {
           data.role === "STAFF" ||
           data.role === "SUPERVISOR")
       ) {
-        localStorage.setItem("token", data.accessToken);
+        storeSessionTokens(data.accessToken, data.refreshToken);
         setRole(data.role);
         toast.success("Login successful!", {
           position: "top-right",
@@ -152,7 +154,7 @@ const StaffLogin: React.FC = () => {
           data.role === "STAFF" ||
           data.role === "SUPERVISOR")
       ) {
-        localStorage.setItem("token", data.accessToken);
+        storeSessionTokens(data.accessToken, data.refreshToken);
         setRole(data.role);
         toast.success("2FA verification successful!", {
           position: "top-right",

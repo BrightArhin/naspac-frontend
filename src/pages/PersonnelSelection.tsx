@@ -21,8 +21,9 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { useAuth } from "../AuthContext";
 import "../components/PersonnelSelection.css";
+import { API_BASE_URL } from "../lib/api-config";
 
-const apiBase = import.meta.env.VITE_API_BASE_URL || "https://nss.cocobod.net";
+const apiBase = API_BASE_URL;
 const getAbsoluteUrl = (url: string) =>
   url && url.startsWith("http") ? url : `${apiBase}${url || ""}`;
 
@@ -266,17 +267,14 @@ const PersonnelSelection: React.FC = () => {
     setLoading(true);
     try {
       const updatePromises = selectedRows.map(async (id) => {
-        const response = await fetch(
-          `https://nss.cocobod.net/users/update-submission-status/${id}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({ status: "PENDING_ENDORSEMENT" }),
+        const response = await fetch(`/users/update-submission-status/${id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+          body: JSON.stringify({ status: "PENDING_ENDORSEMENT" }),
+        });
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to update status");
@@ -287,7 +285,7 @@ const PersonnelSelection: React.FC = () => {
       const updatedSubmissionIds = await Promise.all(updatePromises);
 
       const assignResponse = await fetch(
-        "https://nss.cocobod.net/users/assign-personnel-to-department",
+        "/users/assign-personnel-to-department",
         {
           method: "POST",
           headers: {
@@ -336,20 +334,17 @@ const PersonnelSelection: React.FC = () => {
     setLoading(true);
     try {
       const updatePromises = selectedRows.map(async (id) => {
-        const response = await fetch(
-          `https://nss.cocobod.net/users/update-submission-status/${id}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({
-              status: "REJECTED",
-              comment: "Rejected from personnel selection",
-            }),
+        const response = await fetch(`/users/update-submission-status/${id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+          body: JSON.stringify({
+            status: "REJECTED",
+            comment: "Rejected from personnel selection",
+          }),
+        });
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to reject personnel");

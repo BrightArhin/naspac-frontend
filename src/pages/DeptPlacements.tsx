@@ -86,15 +86,12 @@ const DepartmentPlacements: React.FC = () => {
     const fetchDepartmentsAndPersonnel = async () => {
       setLoading(true);
       try {
-        const deptResponse = await fetch(
-          "https://nss.cocobod.net/users/departments",
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+        const deptResponse = await fetch("/users/departments", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+        });
         const deptData: Department[] = await deptResponse.json();
         if (!deptResponse.ok) {
           throw new Error(
@@ -102,24 +99,21 @@ const DepartmentPlacements: React.FC = () => {
           );
         }
 
-        const personnelResponse = await fetch(
-          "https://nss.cocobod.net/users/personnel",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({
-              statuses: [
-                "PENDING_ENDORSEMENT",
-                "ENDORSED",
-                "VALIDATED",
-                "COMPLETED",
-              ],
-            }),
+        const personnelResponse = await fetch("/users/personnel", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+          body: JSON.stringify({
+            statuses: [
+              "PENDING_ENDORSEMENT",
+              "ENDORSED",
+              "VALIDATED",
+              "COMPLETED",
+            ],
+          }),
+        });
         const personnelData: Personnel[] = await personnelResponse.json();
         if (!personnelResponse.ok) {
           throw new Error(
@@ -139,7 +133,7 @@ const DepartmentPlacements: React.FC = () => {
 
     const fetchSupervisors = async () => {
       try {
-        const response = await fetch("https://nss.cocobod.net/users/staff", {
+        const response = await fetch("/users/staff", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -231,20 +225,17 @@ const DepartmentPlacements: React.FC = () => {
   }) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        "https://nss.cocobod.net/users/create-department",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            name: values.name,
-            supervisorId: Number(values.supervisorId),
-          }),
+      const response = await fetch("/users/create-department", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      );
+        body: JSON.stringify({
+          name: values.name,
+          supervisorId: Number(values.supervisorId),
+        }),
+      });
       const data = await response.json();
       if (response.ok) {
         setDepartments((prev) => [
@@ -289,7 +280,7 @@ const DepartmentPlacements: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://nss.cocobod.net/users/department/${selectedEditDepartment}`,
+        `/users/department/${selectedEditDepartment}`,
         {
           method: "PATCH",
           headers: {
@@ -349,7 +340,7 @@ const DepartmentPlacements: React.FC = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://nss.cocobod.net/users/department/${selectedEditDepartment}`,
+        `/users/department/${selectedEditDepartment}`,
         {
           method: "DELETE",
           headers: {
@@ -386,20 +377,17 @@ const DepartmentPlacements: React.FC = () => {
     }
     setLoading(true);
     try {
-      const response = await fetch(
-        "https://nss.cocobod.net/users/change-department",
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            departmentId: selectedDepartment,
-            userIds: selectedRows,
-          }),
+      const response = await fetch("/users/change-department", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      );
+        body: JSON.stringify({
+          departmentId: selectedDepartment,
+          userIds: selectedRows,
+        }),
+      });
       const data = await response.json();
       if (response.ok) {
         setPersonnel((prev) =>

@@ -64,17 +64,14 @@ const Sidebar: React.FC<SidebarProps> = ({
     const fetchPersonnelStatus = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(
-          "https://nss.cocobod.net/users/personnel-status",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            credentials: "include",
+        const response = await fetch("/users/personnel-status", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        );
+          credentials: "include",
+        });
 
         if (!response.ok) {
           throw new Error("Failed to fetch personnel status");
@@ -129,17 +126,14 @@ const Sidebar: React.FC<SidebarProps> = ({
       formData.append("verificationForm", file);
 
       try {
-        const response = await fetch(
-          "https://nss.cocobod.net/users/submit-verification-form",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: formData,
-            credentials: "include",
+        const response = await fetch("/users/submit-verification-form", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+          body: formData,
+          credentials: "include",
+        });
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -152,17 +146,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         setHasUploaded(true);
         // Refresh status
         const token = localStorage.getItem("token");
-        const statusResponse = await fetch(
-          "https://nss.cocobod.net/users/personnel-status",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            credentials: "include",
+        const statusResponse = await fetch("/users/personnel-status", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        );
+          credentials: "include",
+        });
         if (statusResponse.ok) {
           const data = await statusResponse.json();
           setStatusData({
@@ -411,7 +402,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "https://nss.cocobod.net/documents/personnel/download-appointment-letter?type=endorsed",
+          "/documents/personnel/download-appointment-letter?type=endorsed",
           {
             method: "GET",
             headers: {
@@ -451,7 +442,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "https://nss.cocobod.net/documents/personnel/download-appointment-letter?type=job_confirmation",
+          "/documents/personnel/download-appointment-letter?type=job_confirmation",
           {
             method: "GET",
             headers: {

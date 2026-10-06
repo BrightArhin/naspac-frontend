@@ -3,8 +3,9 @@ import { Table, Input, Typography, Space } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import "../components/PersonnelSelection.css";
+import { API_BASE_URL } from "../lib/api-config";
 
-const apiBase = import.meta.env.VITE_API_BASE_URL || "https://nss.cocobod.net";
+const apiBase = API_BASE_URL;
 
 const { Text } = Typography;
 

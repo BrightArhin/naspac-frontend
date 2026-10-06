@@ -13,6 +13,7 @@ import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import { useAuth } from "../AuthContext";
 import "../components/PersonnelSelection.css";
+import { API_BASE_URL } from "../lib/api-config";
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -46,8 +47,7 @@ const StaffManagement: React.FC = () => {
   const [editForm] = Form.useForm();
 
   // Define API base URL
-  const apiBase =
-    import.meta.env.VITE_API_BASE_URL || "https://nss.cocobod.net";
+  const apiBase = API_BASE_URL;
 
   useEffect(() => {
     const fetchStaff = async () => {

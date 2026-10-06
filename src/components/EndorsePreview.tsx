@@ -7,10 +7,11 @@ import {
   type EndorseBox,
   type EndorsePlacements,
 } from "./endorsePlacements";
+import { API_BASE_URL } from "../lib/api-config";
 
 GlobalWorkerOptions.workerSrc = workerSrc;
 
-const apiBase = import.meta.env.VITE_API_BASE_URL || "https://nss.cocobod.net";
+const apiBase = API_BASE_URL;
 
 type ItemKey = keyof EndorsePlacements;
 
