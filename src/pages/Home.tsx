@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { Card, Typography, message, Select, Spin, Progress, Alert } from "antd";
-import { ClockCircleOutlined } from "@ant-design/icons";
+import React, { useEffect, useRef, useState } from "react";
+import { Button, Card, Typography, message, Select, Spin, Progress, Alert } from "antd";
+import { ClockCircleOutlined, UploadOutlined } from "@ant-design/icons";
 import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 import Notifications from "../components/Notifications";
 
 const { Title, Text } = Typography;
@@ -54,6 +55,19 @@ const Home: React.FC = () => {
   const [statusData, setStatusData] = useState<PersonnelStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const replacementInputRef = useRef<HTMLInputElement>(null);
+  const [replacementFile, setReplacementFile] = useState<File | null>(null);
+  const [replacementPreviewUrl, setReplacementPreviewUrl] = useState<string | null>(
+    null,
+  );
+  const [replacementUploading, setReplacementUploading] = useState(false);
+  const [replacementUploaded, setReplacementUploaded] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (replacementPreviewUrl) URL.revokeObjectURL(replacementPreviewUrl);
+    };
+  }, [replacementPreviewUrl]);
 
   useEffect(() => {
     const hasReloaded = sessionStorage.getItem("reloaded");
@@ -127,28 +141,50 @@ const Home: React.FC = () => {
     fetchPersonnelStatus();
   }, [userId]);
 
-  const handleReplaceLetter = async (
+  const clearReplacementPreview = () => {
+    setReplacementPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setReplacementFile(null);
+  };
+
+  const handleChooseReplacementFile = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
+    event.target.value = "";
     if (!file) return;
     const isPdf =
       file.type === "application/pdf" ||
       file.name.toLowerCase().endsWith(".pdf");
     if (!isPdf) {
-      message.error("Only PDF files are allowed");
+      toast.error("Only PDF files are allowed");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      message.error("The PDF must be 10MB or smaller");
+      toast.error("The PDF must be 10MB or smaller");
+      return;
+    }
+    setReplacementPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+    setReplacementFile(file);
+  };
+
+  const handleUploadReplacement = async () => {
+    if (!replacementFile) {
+      toast.error("Choose the PDF first");
       return;
     }
     const formData = new FormData();
     formData.append(
       "postingAppointmentLetter",
-      file,
+      replacementFile,
       "postingAppointmentLetter.pdf",
     );
+    setReplacementUploading(true);
     try {
       const response = await fetch(
         "/users/replace-posting-appointment-letter",
@@ -162,7 +198,9 @@ const Home: React.FC = () => {
       if (!response.ok) {
         throw new Error(data.message || "Failed to upload the letter");
       }
-      message.success("Posting and appointment letter submitted again");
+      toast.success("file uploaded successfully");
+      setReplacementUploaded(true);
+      clearReplacementPreview();
       setStatusData((prev) =>
         prev
           ? {
@@ -174,7 +212,9 @@ const Home: React.FC = () => {
           : prev,
       );
     } catch (err: any) {
-      message.error(err.message || "Failed to upload the letter");
+      toast.error(err.message || "Failed to upload the letter");
+    } finally {
+      setReplacementUploading(false);
     }
   };
 
@@ -387,6 +427,14 @@ const Home: React.FC = () => {
           </div>
         </section>
 
+        {replacementUploaded && (
+          <Alert
+            className="mb-6"
+            type="success"
+            showIcon
+            message="file uploaded successfully"
+          />
+        )}
         {statusData?.uploadRejected && (
           <Alert
             className="mb-6"
@@ -396,14 +444,42 @@ const Home: React.FC = () => {
             description={
               <div>
                 <p className="mb-2">{statusData.uploadRejectionReason}</p>
-                <p className="mb-2">
+                <p className="mb-3">
                   Upload the correct PDF. It must be 10MB or smaller.
                 </p>
                 <input
+                  ref={replacementInputRef}
                   type="file"
                   accept="application/pdf,.pdf"
-                  onChange={handleReplaceLetter}
+                  className="hidden"
+                  onChange={handleChooseReplacementFile}
                 />
+                <Button
+                  className="naspac-btn-secondary"
+                  icon={<UploadOutlined />}
+                  onClick={() => replacementInputRef.current?.click()}
+                >
+                  Choose file
+                </Button>
+                {replacementFile && replacementPreviewUrl && (
+                  <div className="mt-4">
+                    <p className="mb-2 text-sm text-[#2c241f]">
+                      {replacementFile.name}
+                    </p>
+                    <iframe
+                      title="Letter preview"
+                      src={replacementPreviewUrl}
+                      className="mb-3 h-[420px] w-full rounded-lg border border-[#e6dfd6] bg-white"
+                    />
+                    <Button
+                      className="naspac-btn-primary"
+                      loading={replacementUploading}
+                      onClick={handleUploadReplacement}
+                    >
+                      Upload
+                    </Button>
+                  </div>
+                )}
               </div>
             }
           />
