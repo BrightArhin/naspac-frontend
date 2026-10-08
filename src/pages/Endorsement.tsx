@@ -26,11 +26,10 @@ import {
   defaultEndorsePlacements,
   type EndorsePlacements,
 } from "../components/endorsePlacements";
-import { API_BASE_URL } from "../lib/api-config";
+import { API_BASE_URL, resolveFileUrl } from "../lib/api-config";
 
 const apiBase = API_BASE_URL;
-const getAbsoluteUrl = (url: string) =>
-  url && url.startsWith("http") ? url : `${apiBase}${url || ""}`;
+const getAbsoluteUrl = resolveFileUrl;
 
 const { Option } = Select;
 const { Text } = Typography;

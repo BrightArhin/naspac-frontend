@@ -22,11 +22,10 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { useAuth } from "../AuthContext";
 import "../components/PersonnelSelection.css";
-import { API_BASE_URL } from "../lib/api-config";
+import { API_BASE_URL, resolveFileUrl } from "../lib/api-config";
 
 const apiBase = API_BASE_URL;
-const getAbsoluteUrl = (url: string) =>
-  url && url.startsWith("http") ? url : `${apiBase}${url || ""}`;
+const getAbsoluteUrl = resolveFileUrl;
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -70,13 +69,23 @@ const Endorsement: React.FC = () => {
     id?: number;
   } | null>(null);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
-  const [shortlistModalVisible, setShortlistModalVisible] = useState(false);
   const [validatedCount, setValidatedCount] = useState<number>(0);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [rejectUploadVisible, setRejectUploadVisible] = useState(false);
   const [rejectUploadReason, setRejectUploadReason] = useState("");
   const [rejectUploadId, setRejectUploadId] = useState<number | null>(null);
   const [filterForm] = Form.useForm();
+  const [departments, setDepartments] = useState<{ id: number; name: string }[]>(
+    [],
+  );
+  const [departmentPerson, setDepartmentPerson] = useState<Submission | null>(
+    null,
+  );
+  const [selectedDepartment, setSelectedDepartment] = useState<number | null>(
+    null,
+  );
+  const [validateConfirmVisible, setValidateConfirmVisible] = useState(false);
+  const isAdmin = role === "ADMIN" || role === "SUPERADMIN";
 
   // Fetch validated count
   useEffect(() => {
@@ -120,8 +129,9 @@ const Endorsement: React.FC = () => {
         });
         const data: Submission[] = await response.json();
         if (response.ok) {
-          setSubmissions(data);
-          setFilteredSubmissions(data);
+          const endorsed = data.filter((s) => s.status === "ENDORSED");
+          setSubmissions(endorsed);
+          setFilteredSubmissions(endorsed);
         } else {
           toast.error((data as any).message || "Failed to load submissions");
         }
@@ -135,6 +145,22 @@ const Endorsement: React.FC = () => {
       fetchSubmissions();
     }
   }, [role]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const loadDepartments = async () => {
+      try {
+        const response = await fetch("/users/departments", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        const data = await response.json();
+        if (response.ok) setDepartments(data);
+      } catch {
+        toast.error("Failed to load departments");
+      }
+    };
+    loadDepartments();
+  }, [isAdmin]);
 
   const applyFilters = (values: any) => {
     let filtered = [...submissions];
@@ -294,82 +320,63 @@ const Endorsement: React.FC = () => {
     }
   };
 
+  const openDepartment = (record: Submission) => {
+    if (!record.verificationFormUrl) {
+      toast.error("This personnel has not uploaded a verification form yet");
+      return;
+    }
+    setDepartmentPerson(record);
+    setSelectedDepartment(null);
+    setValidateConfirmVisible(false);
+  };
+
   const handleValidate = async () => {
-    if (!modalContent?.id) return;
+    if (!departmentPerson || !selectedDepartment) return;
     setLoading(true);
     try {
+      const assignResponse = await fetch("/users/assign-personnel-to-department", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          departmentId: selectedDepartment,
+          submissionIds: [departmentPerson.id],
+        }),
+      });
+      if (!assignResponse.ok) {
+        const errorData = await assignResponse.json();
+        throw new Error(errorData.message || "Failed to assign the department");
+      }
       const response = await fetch(
-        `/users/update-submission-status/${modalContent.id}`,
+        `/users/update-submission-status/${departmentPerson.id}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify({
-            status: "VALIDATED",
-          }),
+          body: JSON.stringify({ status: "VALIDATED" }),
         },
       );
-      if (response.ok) {
-        setSubmissions((prev) => prev.filter((s) => s.id !== modalContent.id));
-        setFilteredSubmissions((prev) =>
-          prev.filter((s) => s.id !== modalContent.id),
-        );
-        setModalVisible(false);
-        setValidatedCount((prev) => prev + 1);
-        toast.success("Appointment letter validated successfully");
-        window.location.reload();
-      } else {
+      if (!response.ok) {
         const errorData = await response.json();
-        toast.error(
-          errorData.message || "Failed to validate appointment letter",
+        throw new Error(
+          errorData.message || "Failed to send the appointment letter",
         );
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to validate appointment letter");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleShortlistConfirm = async () => {
-    setLoading(true);
-    try {
-      const updatePromises = selectedRows.map(async (id) => {
-        const response = await fetch(`/users/update-submission-status/${id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            status: "VALIDATED",
-          }),
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(
-            errorData.message || "Failed to validate appointment letter",
-          );
-        }
-      });
-
-      await Promise.all(updatePromises);
-
-      setSubmissions((prev) =>
-        prev.filter((s) => !selectedRows.includes(s.id)),
-      );
+      setSubmissions((prev) => prev.filter((s) => s.id !== departmentPerson.id));
       setFilteredSubmissions((prev) =>
-        prev.filter((s) => !selectedRows.includes(s.id)),
+        prev.filter((s) => s.id !== departmentPerson.id),
       );
-      setValidatedCount((prev) => prev + selectedRows.length);
-      setSelectedRows([]);
-      setShortlistModalVisible(false);
-      toast.success(`${selectedRows.length} verification forms validated`);
-      window.location.reload();
+      setDepartmentPerson(null);
+      setValidateConfirmVisible(false);
+      setSelectedDepartment(null);
+      setValidatedCount((prev) => prev + 1);
+      toast.success("Appointment letter sent");
     } catch (error: any) {
-      toast.error(error.message || "Failed to validate verification forms");
+      toast.error(error.message || "Failed to send the appointment letter");
     } finally {
       setLoading(false);
     }
@@ -604,7 +611,11 @@ const Endorsement: React.FC = () => {
                   ".ant-btn, .ant-checkbox",
                 )
               ) {
-                handleRowSelect(record.id);
+                if (isAdmin) {
+                  openDepartment(record);
+                } else {
+                  handleRowSelect(record.id);
+                }
               }
             },
           })}
@@ -622,18 +633,9 @@ const Endorsement: React.FC = () => {
             >
               Download
             </Button>,
-            modalContent?.type === "Verification Form" && (
-              <Button
-                key="validate"
-                className="naspac-btn-primary"
-                type="primary"
-                onClick={handleValidate}
-                loading={loading}
-              >
-                Validate
-              </Button>
-            ),
-            modalContent?.type === "Verification Form" && modalContent.id && (
+            isAdmin &&
+              modalContent?.type === "Verification Form" &&
+              modalContent.id && (
               <Button
                 key="reject-upload"
                 className="naspac-btn-danger"
@@ -667,17 +669,52 @@ const Endorsement: React.FC = () => {
           )}
         </Modal>
         <Modal
-          title="Confirm Validation"
-          open={shortlistModalVisible}
-          onOk={handleShortlistConfirm}
-          onCancel={() => setShortlistModalVisible(false)}
-          okText="Confirm"
+          title={
+            departmentPerson
+              ? `Choose department for ${departmentPerson.fullName}`
+              : "Choose department"
+          }
+          open={!!departmentPerson && !validateConfirmVisible}
+          onCancel={() => setDepartmentPerson(null)}
+          footer={null}
+        >
+          <p className="mb-3">
+            Select the department. You will be asked to confirm before the
+            appointment letter is sent.
+          </p>
+          <Select
+            showSearch
+            placeholder="Select a department"
+            className="w-full"
+            value={selectedDepartment ?? undefined}
+            onChange={(value) => {
+              setSelectedDepartment(value);
+              setValidateConfirmVisible(true);
+            }}
+            optionFilterProp="label"
+            options={departments.map((dept) => ({
+              value: dept.id,
+              label: dept.name,
+            }))}
+          />
+        </Modal>
+        <Modal
+          title="Send the appointment letter"
+          open={validateConfirmVisible}
+          onOk={handleValidate}
+          onCancel={() => {
+            setValidateConfirmVisible(false);
+            setSelectedDepartment(null);
+          }}
+          okText="Yes, send it"
           cancelText="Cancel"
+          confirmLoading={loading}
           okButtonProps={{ className: "naspac-btn-primary" }}
           cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <p>
-            Are you sure you want to validate {selectedRows.length} personnel?
+            Validating will send the appointment letter to{" "}
+            {departmentPerson?.fullName}. Do you want to continue?
           </p>
         </Modal>
         <Modal

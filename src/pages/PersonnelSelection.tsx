@@ -21,14 +21,27 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { useAuth } from "../AuthContext";
 import "../components/PersonnelSelection.css";
-import { API_BASE_URL } from "../lib/api-config";
+import EndorsePreview from "../components/EndorsePreview";
+import {
+  defaultEndorsePlacements,
+  type EndorsePlacements,
+} from "../components/endorsePlacements";
+import { API_BASE_URL, resolveFileUrl } from "../lib/api-config";
 
 const apiBase = API_BASE_URL;
-const getAbsoluteUrl = (url: string) =>
-  url && url.startsWith("http") ? url : `${apiBase}${url || ""}`;
+const getAbsoluteUrl = resolveFileUrl;
 
 const { Option } = Select;
 const { Text } = Typography;
+
+const parseEndorsePages = (value: string) => [
+  ...new Set(
+    value
+      .split(/[^0-9]+/)
+      .map(Number)
+      .filter((page) => page > 0),
+  ),
+];
 
 interface Submission {
   id: number;
@@ -71,49 +84,16 @@ const PersonnelSelection: React.FC = () => {
     id?: number;
   } | null>(null);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
-  const [shortlistModalVisible, setShortlistModalVisible] = useState(false);
-  const [shortlistedCount, setShortlistedCount] = useState<number>(0);
-  const [departments, setDepartments] = useState<
-    { id: number; name: string }[]
-  >([]);
-  const [selectedDepartment, setSelectedDepartment] = useState<number | null>(
-    null,
-  );
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
+  const [endorseIds, setEndorseIds] = useState<number[]>([]);
+  const [endorsePages, setEndorsePages] = useState("4, 5");
+  const [placements, setPlacements] = useState<EndorsePlacements>(
+    defaultEndorsePlacements,
+  );
+  const isAdmin = role === "ADMIN" || role === "SUPERADMIN";
   const [rejectUploadVisible, setRejectUploadVisible] = useState(false);
   const [rejectUploadReason, setRejectUploadReason] = useState("");
   const [rejectUploadIds, setRejectUploadIds] = useState<number[]>([]);
-
-  useEffect(() => {
-    const fetchShortlistedCount = async () => {
-      try {
-        const response = await fetch(
-          `${apiBase}/users/submission-status-counts`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            body: JSON.stringify({
-              statuses: ["PENDING_ENDORSEMENT"],
-            }),
-          },
-        );
-        const data = await response.json();
-        if (response.ok) {
-          setShortlistedCount(data.PENDING_ENDORSEMENT || 0);
-        } else {
-          toast.error(data.message || "Failed to load shortlisted count");
-        }
-      } catch (error) {
-        toast.error("Failed to load shortlisted count");
-      }
-    };
-    if (role && ["ADMIN", "SUPERADMIN", "STAFF"].includes(role)) {
-      fetchShortlistedCount();
-    }
-  }, [role]);
 
   useEffect(() => {
     const fetchSubmissions = async () => {
@@ -128,7 +108,9 @@ const PersonnelSelection: React.FC = () => {
         const data: Submission[] = await response.json();
         if (response.ok) {
           const pendingSubmissions = data.filter(
-            (s) => s.status === "PENDING" && !s.uploadRejected,
+            (s) =>
+              (s.status === "PENDING" || s.status === "PENDING_ENDORSEMENT") &&
+              !s.uploadRejected,
           );
           setSubmissions(pendingSubmissions);
           setFilteredSubmissions(pendingSubmissions);
@@ -217,116 +199,84 @@ const PersonnelSelection: React.FC = () => {
   };
 
   // Handle letter view
-  const showLetter = (url: string, type: string, id?: number) => {
+  const showLetter = (
+    url: string,
+    type: string,
+    id?: number,
+    idsToEndorse: number[] = [],
+  ) => {
+    setEndorseIds(idsToEndorse);
+    setPlacements(defaultEndorsePlacements);
     setModalContent({ url, type, id });
     setModalVisible(true);
   };
 
-  const handleDownload = () => {
-    if (modalContent?.url) {
-      const fileUrl = getAbsoluteUrl(modalContent.url);
-      window.open(fileUrl, "_blank");
-    }
-  };
-
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await fetch(`${apiBase}/users/departments`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        const data = await response.json();
-        if (response.ok) {
-          setDepartments(data);
-        } else {
-          toast.error(data.message || "Failed to load departments");
-        }
-      } catch (error) {
-        toast.error("Failed to load departments");
-      }
-    };
-    fetchDepartments();
-  }, []);
-
-  const handleShortlistConfirm = async () => {
-    if (!selectedDepartment) {
-      toast.error("Please select a department");
+  const openEndorse = (record: Submission, ids: number[] = [record.id]) => {
+    const letterUrl = record.appointmentLetterUrl || record.postingLetterUrl;
+    if (!letterUrl) {
+      toast.error("This personnel has no posting and appointment letter");
       return;
     }
-    const waitingForReplacement = submissions.filter(
-      (s) => selectedRows.includes(s.id) && s.uploadRejected,
-    );
-    if (waitingForReplacement.length > 0) {
-      toast.error(
-        "A selected letter was rejected and is waiting for a new PDF",
-      );
+    if (record.uploadRejected) {
+      toast.error("This letter was rejected and is waiting for a new PDF");
+      return;
+    }
+    showLetter(letterUrl, "Posting & Appointment Letter", record.id, ids);
+  };
+
+  const handleEndorse = async () => {
+    const ids = endorseIds.length
+      ? endorseIds
+      : modalContent?.id
+        ? [modalContent.id]
+        : [];
+    if (ids.length === 0) return;
+    const pages = parseEndorsePages(endorsePages);
+    if (pages.length === 0) {
+      toast.error("Enter the page numbers to endorse, for example 4, 5");
       return;
     }
     setLoading(true);
     try {
-      const updatePromises = selectedRows.map(async (id) => {
-        const response = await fetch(`/users/update-submission-status/${id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({ status: "PENDING_ENDORSEMENT" }),
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to update status");
-        }
-        return id;
-      });
-
-      const updatedSubmissionIds = await Promise.all(updatePromises);
-
-      const assignResponse = await fetch(
-        "/users/assign-personnel-to-department",
-        {
+      for (const id of ids) {
+        const response = await fetch("/documents/sign", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({
-            departmentId: selectedDepartment,
-            submissionIds: updatedSubmissionIds,
+            submissionId: id,
+            documentType: "appointmentLetter",
+            pages,
+            placements,
           }),
-        },
-      );
-
-      if (!assignResponse.ok) {
-        const errorData = await assignResponse.json();
-        throw new Error(
-          errorData.message || "Failed to assign personnel to department",
-        );
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to endorse");
+        }
       }
-
-      setSubmissions((prev) =>
-        prev.filter((s) => !selectedRows.includes(s.id)),
-      );
-      setFilteredSubmissions((prev) =>
-        prev.filter((s) => !selectedRows.includes(s.id)),
-      );
-      setShortlistedCount((prev) => prev + selectedRows.length);
+      setSubmissions((prev) => prev.filter((s) => !ids.includes(s.id)));
+      setFilteredSubmissions((prev) => prev.filter((s) => !ids.includes(s.id)));
       setSelectedRows([]);
-      setShortlistModalVisible(false);
-      setSelectedDepartment(null);
+      setModalVisible(false);
       toast.success(
-        `${selectedRows.length} personnel shortlisted and assigned to department`,
+        ids.length === 1
+          ? "Endorsed. The personnel can now upload a verification form."
+          : `${ids.length} personnel endorsed`,
       );
-      window.location.reload();
     } catch (error: any) {
-      toast.error(
-        error.message ||
-          "Failed to shortlist personnel or assign to department",
-      );
+      toast.error(error.message || "Failed to endorse");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (modalContent?.url) {
+      const fileUrl = getAbsoluteUrl(modalContent.url);
+      window.open(fileUrl, "_blank");
     }
   };
 
@@ -569,19 +519,31 @@ const PersonnelSelection: React.FC = () => {
         <div className="mb-3 flex flex-col gap-3 rounded-xl border border-[#e6dfd6] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
           <Space>
             <Text className="text-base font-semibold text-[#5B3418] bg-amber-100 px-3 py-1 rounded-md">
-              Total Shortlisted: {shortlistedCount}
+              Waiting: {submissions.length}
             </Text>
             {selectedRows.length > 0 && (
               <Space>
                 <Text>{`${selectedRows.length} selected`}</Text>
-                {(role === "ADMIN" || role === "SUPERADMIN") && (
+                {isAdmin && (
                   <>
                     <Button
                       type="primary"
-                      onClick={() => setShortlistModalVisible(true)}
                       className="naspac-btn-primary"
+                      onClick={() => {
+                        const chosen = filteredSubmissions.filter((s) =>
+                          selectedRows.includes(s.id),
+                        );
+                        const first = chosen.find(
+                          (s) => s.appointmentLetterUrl || s.postingLetterUrl,
+                        );
+                        if (!first) {
+                          toast.error("Select a personnel who has a letter");
+                          return;
+                        }
+                        openEndorse(first, selectedRows);
+                      }}
                     >
-                      Shortlist
+                      Endorse
                     </Button>
                     <Button
                       type="primary"
@@ -653,7 +615,11 @@ const PersonnelSelection: React.FC = () => {
                   ".ant-btn, .ant-checkbox",
                 )
               ) {
-                handleRowSelect(record.id);
+                if (isAdmin) {
+                  openEndorse(record, [record.id]);
+                } else {
+                  handleRowSelect(record.id);
+                }
               }
             },
           })}
@@ -671,13 +637,26 @@ const PersonnelSelection: React.FC = () => {
             >
               Download
             </Button>,
+            isAdmin && modalContent?.type === "Posting & Appointment Letter" && (
+              <Button
+                key="endorse"
+                className="naspac-btn-primary"
+                type="primary"
+                onClick={handleEndorse}
+                loading={loading}
+              >
+                {endorseIds.length > 1 ? `Endorse ${endorseIds.length}` : "Endorse"}
+              </Button>
+            ),
             modalContent?.id && (
               <Button
                 key="reject-upload"
                 className="naspac-btn-danger"
                 type="primary"
                 onClick={() => {
-                  setRejectUploadIds([modalContent.id as number]);
+                  setRejectUploadIds(
+                    endorseIds.length ? endorseIds : [modalContent.id as number],
+                  );
                   setRejectUploadReason("");
                   setRejectUploadVisible(true);
                 }}
@@ -693,61 +672,44 @@ const PersonnelSelection: React.FC = () => {
               Close
             </Button>,
           ].filter(Boolean)}
-          width={800}
+          width={isAdmin ? 980 : 800}
           className="centered-modal"
         >
-          {modalContent?.url && (
+          {isAdmin && modalContent?.type === "Posting & Appointment Letter" && (
+            <div className="mb-3">
+              <Text className="mb-1 block">Pages to endorse</Text>
+              <Input
+                value={endorsePages}
+                onChange={(e) => setEndorsePages(e.target.value)}
+                placeholder="4, 5"
+              />
+              <p className="mt-1 text-xs text-[#625E5C]">
+                Place the date, signature, and stamp, then click Endorse. The
+                personnel moves to Manage Personnel and is asked to upload a
+                verification form.
+              </p>
+            </div>
+          )}
+          {modalContent?.url &&
+          isAdmin &&
+          modalContent.type === "Posting & Appointment Letter" ? (
+            <EndorsePreview
+              fileUrl={getAbsoluteUrl(modalContent.url)}
+              pages={
+                parseEndorsePages(endorsePages).length
+                  ? parseEndorsePages(endorsePages)
+                  : [4, 5]
+              }
+              placements={placements}
+              onChange={setPlacements}
+            />
+          ) : modalContent?.url ? (
             <iframe
               src={getAbsoluteUrl(modalContent.url)}
               style={{ width: "100%", height: "80vh", border: "none" }}
               title={modalContent.type}
             />
-          )}
-        </Modal>
-        <Modal
-          title="Confirm Shortlist"
-          open={shortlistModalVisible}
-          onOk={handleShortlistConfirm}
-          onCancel={() => {
-            setShortlistModalVisible(false);
-            setSelectedDepartment(null);
-          }}
-          okText="Confirm"
-          cancelText="Cancel"
-          okButtonProps={{
-            className: "naspac-btn-primary",
-            disabled: !selectedDepartment,
-          }}
-          cancelButtonProps={{ className: "naspac-btn-secondary" }}
-        >
-          <div className="flex flex-col gap-4">
-            <p>
-              Are you sure you want to shortlist {selectedRows.length}{" "}
-              personnel?
-            </p>
-            <div className="flex justify-between items-center">
-              <div className="w-1/3">
-                <Select
-                  showSearch
-                  placeholder="Select a department"
-                  value={selectedDepartment}
-                  onChange={(value) => setSelectedDepartment(value)}
-                  filterOption={(input, option) =>
-                    (option?.children as unknown as string)
-                      ?.toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  className="w-full"
-                >
-                  {departments.map((dept) => (
-                    <Option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-          </div>
+          ) : null}
         </Modal>
         <Modal
           title="Confirm Rejection"

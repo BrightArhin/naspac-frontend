@@ -32,3 +32,24 @@ export function isManagedApiUrl(url: string) {
     url.startsWith("/") || legacyApiBases.some((base) => url.startsWith(base))
   );
 }
+
+export function resolveFileUrl(url: string) {
+  if (!url) return "";
+  if (url.startsWith("/")) {
+    return `${API_BASE_URL}${url}`;
+  }
+
+  const isLocalApi = /localhost|127\.0\.0\.1/.test(API_BASE_URL);
+  if (!isLocalApi) return url;
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.pathname.startsWith("/files/")) {
+      return `${API_BASE_URL}${parsed.pathname}${parsed.search}`;
+    }
+  } catch {
+    return url;
+  }
+
+  return url;
+}

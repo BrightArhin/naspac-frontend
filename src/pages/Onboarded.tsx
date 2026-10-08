@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Button, Form, Input, Modal, Table, Typography, Space, message } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  Table,
+  Typography,
+  Space,
+  message,
+} from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import "../components/PersonnelSelection.css";
@@ -36,7 +45,9 @@ const Onboarded: React.FC = () => {
   const [editing, setEditing] = useState<OnboardedPerson | null>(null);
   const [saving, setSaving] = useState(false);
   const [resendingId, setResendingId] = useState<number | null>(null);
-  const [resendTarget, setResendTarget] = useState<OnboardedPerson | null>(null);
+  const [resendTarget, setResendTarget] = useState<OnboardedPerson | null>(
+    null,
+  );
   const [form] = Form.useForm();
 
   const authHeaders = () => ({
@@ -126,10 +137,12 @@ const Onboarded: React.FC = () => {
       }
       setResendTarget(null);
       message.success(
-        data.message || `Onboarding email sent to ${data.email || person.email}`,
+        data.message ||
+          `Onboarding email sent to ${data.email || person.email}`,
       );
       toast.success(
-        data.message || `Onboarding email sent to ${data.email || person.email}`,
+        data.message ||
+          `Onboarding email sent to ${data.email || person.email}`,
       );
     } catch (error: any) {
       message.error(error.message || "Failed to resend the email");
@@ -245,8 +258,8 @@ const Onboarded: React.FC = () => {
         >
           <p>
             Send a new set-password link to{" "}
-            <strong>{resendTarget?.email || "this personnel"}</strong>?{" "}
-            The link is valid for 24 hours.
+            <strong>{resendTarget?.email || "this personnel"}</strong>? The link
+            is valid for 24 hours.
           </p>
         </Modal>
         <Modal

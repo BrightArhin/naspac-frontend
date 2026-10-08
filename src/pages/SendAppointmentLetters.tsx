@@ -20,11 +20,10 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { useAuth } from "../AuthContext";
 import "../components/PersonnelSelection.css";
-import { API_BASE_URL } from "../lib/api-config";
+import { API_BASE_URL, resolveFileUrl } from "../lib/api-config";
 
 const apiBase = API_BASE_URL;
-const getAbsoluteUrl = (url: string) =>
-  url && url.startsWith("http") ? url : `${apiBase}${url || ""}`;
+const getAbsoluteUrl = resolveFileUrl;
 
 const { Option } = Select;
 const { Text } = Typography;
