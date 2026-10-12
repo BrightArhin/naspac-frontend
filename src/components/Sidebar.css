@@ -86,7 +86,12 @@
   color: #fff !important;
 }
 
-.nav-menu .ant-menu-item-disabled .ant-menu-title-content {
+.sidebar-container .ant-menu-item-disabled {
+  opacity: 0.38 !important;
+}
+
+.nav-menu .ant-menu-item-disabled .ant-menu-title-content,
+.nav-menu .ant-menu-item-disabled .ant-menu-title-content span {
   color: rgba(255, 246, 238, 0.35) !important;
 }
 

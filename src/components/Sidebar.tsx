@@ -11,6 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 import { useAuth } from "../AuthContext";
+import { toast } from "react-toastify";
 
 const { Sider } = Layout;
 
@@ -18,6 +19,7 @@ interface PersonnelStatus {
   submissionStatus: string | null;
   verificationRejected?: boolean;
   verificationRejectionReason?: string | null;
+  verificationUploaded?: boolean;
 }
 
 interface SidebarProps {
@@ -82,7 +84,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           submissionStatus: data.submissionStatus || null,
           verificationRejected: data.verificationRejected,
           verificationRejectionReason: data.verificationRejectionReason,
+          verificationUploaded: data.verificationUploaded,
         });
+        setHasUploaded(
+          Boolean(data.verificationUploaded) && !data.verificationRejected,
+        );
       } catch (err) {
         message.error("Unable to load personnel status");
         console.error(err);
@@ -100,25 +106,25 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleUploadConfirm = () => {
-    // Trigger file picker
+    setUploadModalVisible(false);
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "application/pdf";
     input.onchange = async (event: Event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) {
-        message.error("No file selected");
+        toast.error("No file selected");
         return;
       }
       const isPdf =
         file.type === "application/pdf" ||
         file.name.toLowerCase().endsWith(".pdf");
       if (!isPdf) {
-        message.error("Only PDF files are allowed");
+        toast.error("Only PDF files are allowed");
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        message.error("The PDF must be 10MB or smaller");
+        toast.error("The PDF must be 10MB or smaller");
         return;
       }
 
@@ -141,10 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             errorData.message || "Failed to upload verification form",
           );
         }
-        message.success("Verification form uploaded successfully");
-        setUploadModalVisible(false);
         setHasUploaded(true);
-        // Refresh status
         const token = localStorage.getItem("token");
         const statusResponse = await fetch("/users/personnel-status", {
           method: "GET",
@@ -160,10 +163,14 @@ const Sidebar: React.FC<SidebarProps> = ({
             submissionStatus: data.submissionStatus || null,
             verificationRejected: data.verificationRejected,
             verificationRejectionReason: data.verificationRejectionReason,
+            verificationUploaded: true,
           });
         }
+        requestAnimationFrame(() => {
+          toast.success("Verification Uploaded successfully");
+        });
       } catch (err: any) {
-        message.error(err.message || "Failed to upload verification form");
+        toast.error(err.message || "Failed to upload verification form");
         console.error(err);
       }
     };

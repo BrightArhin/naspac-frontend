@@ -73,7 +73,7 @@ const Endorsement: React.FC = () => {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [rejectUploadVisible, setRejectUploadVisible] = useState(false);
   const [rejectUploadReason, setRejectUploadReason] = useState("");
-  const [rejectUploadId, setRejectUploadId] = useState<number | null>(null);
+  const [rejectUploadIds, setRejectUploadIds] = useState<number[]>([]);
   const [filterForm] = Form.useForm();
   const [departments, setDepartments] = useState<{ id: number; name: string }[]>(
     [],
@@ -280,37 +280,52 @@ const Endorsement: React.FC = () => {
     }
   };
 
+  const openRejectUpload = (ids: number[]) => {
+    const withForms = filteredSubmissions
+      .filter((s) => ids.includes(s.id) && s.verificationFormUrl)
+      .map((s) => s.id);
+    if (withForms.length === 0) {
+      toast.error("This personnel has not uploaded a verification form yet");
+      return;
+    }
+    setRejectUploadIds(withForms);
+    setRejectUploadReason("");
+    setRejectUploadVisible(true);
+  };
+
   const handleRejectVerification = async () => {
-    if (!rejectUploadId) return;
+    if (rejectUploadIds.length === 0) return;
     if (rejectUploadReason.trim().length < 5) {
       toast.error("Enter a reason of at least 5 characters");
       return;
     }
     setLoading(true);
     try {
-      const response = await fetch(
-        `${apiBase}/users/reject-upload/${rejectUploadId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            target: "verification",
-            reason: rejectUploadReason.trim(),
-          }),
-        },
+      await Promise.all(
+        rejectUploadIds.map(async (id) => {
+          const response = await fetch(`${apiBase}/users/reject-upload/${id}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({
+              target: "verification",
+              reason: rejectUploadReason.trim(),
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.message || "Failed to reject upload");
+          }
+        }),
       );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to reject upload");
-      }
       toast.success(
         "Verification form rejected. The personnel has been emailed.",
       );
       setRejectUploadVisible(false);
       setRejectUploadReason("");
+      setRejectUploadIds([]);
       setModalVisible(false);
       window.location.reload();
     } catch (error: any) {
@@ -560,13 +575,13 @@ const Endorsement: React.FC = () => {
             {selectedRows.length > 0 && (
               <Space>
                 <Text>{`${selectedRows.length} selected`}</Text>
-                {/* <Button
+                <Button
                   type="primary"
-                  onClick={() => setShortlistModalVisible(true)}
-                  className="!bg-[#5B3418] hover:!bg-[#4a2c1c] !border-0"
+                  onClick={() => openRejectUpload(selectedRows)}
+                  className="naspac-btn-danger"
                 >
-                  Validate
-                </Button> */}
+                  Reject upload
+                </Button>
               </Space>
             )}
             <Button
@@ -633,18 +648,13 @@ const Endorsement: React.FC = () => {
             >
               Download
             </Button>,
-            isAdmin &&
-              modalContent?.type === "Verification Form" &&
+            modalContent?.type === "Verification Form" &&
               modalContent.id && (
               <Button
                 key="reject-upload"
                 className="naspac-btn-danger"
                 type="primary"
-                onClick={() => {
-                  setRejectUploadId(modalContent.id as number);
-                  setRejectUploadReason("");
-                  setRejectUploadVisible(true);
-                }}
+                onClick={() => openRejectUpload([modalContent.id as number])}
               >
                 Reject upload
               </Button>
