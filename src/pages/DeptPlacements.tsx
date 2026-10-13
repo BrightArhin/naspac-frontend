@@ -550,7 +550,9 @@ const DepartmentPlacements: React.FC = () => {
             <Select
               value={departmentFilter}
               onChange={setDepartmentFilter}
-              className="rounded-md w-fit sm:w-48"
+              className="dept-filter-select rounded-md"
+              popupClassName="dept-filter-dropdown"
+              popupMatchSelectWidth={false}
               placeholder="Filter by department"
             >
               <Option value="All">All</Option>

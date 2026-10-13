@@ -182,3 +182,23 @@
 .ant-menu-item-disabled span {
   color: #a9a7a7 !important;
 }
+
+.dept-filter-select.ant-select {
+  width: 26rem !important;
+  min-width: 26rem !important;
+  max-width: calc(100vw - 2rem);
+  flex: 0 0 auto !important;
+}
+
+.dept-filter-dropdown.ant-select-dropdown {
+  min-width: 26rem !important;
+  width: max-content !important;
+  max-width: min(40rem, calc(100vw - 2rem));
+}
+
+.dept-filter-select .ant-select-selection-item,
+.dept-filter-dropdown .ant-select-item-option-content {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+}
