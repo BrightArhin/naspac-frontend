@@ -16,11 +16,14 @@ import {
   SearchOutlined,
   DownloadOutlined,
   DeleteOutlined,
+  EyeOutlined,
+  MailOutlined,
 } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { useAuth } from "../AuthContext";
+import { fetchAppointmentLetterPreview } from "../lib/api-config";
 import "../components/PersonnelSelection.css";
 
 const { Option } = Select;
@@ -51,6 +54,8 @@ interface Personnel {
     programStudied: string;
     divisionPostedTo: string;
     status: string;
+    jobConfirmationLetterUrl?: string;
+    verificationFormUrl?: string;
   }[];
 }
 
@@ -75,7 +80,13 @@ const DepartmentPlacements: React.FC = () => {
     null,
   );
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [letterPreviewUrl, setLetterPreviewUrl] = useState("");
+  const [letterPreviewLoading, setLetterPreviewLoading] = useState(false);
+  const [letterPreviewVisible, setLetterPreviewVisible] = useState(false);
+  const [sendConfirmVisible, setSendConfirmVisible] = useState(false);
+  const [sendTargetIds, setSendTargetIds] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"create" | "edit">("create");
+  const isAdmin = role === "ADMIN" || role === "SUPERADMIN";
   const [selectedEditDepartment, setSelectedEditDepartment] = useState<
     number | null
   >(null);
@@ -369,6 +380,83 @@ const DepartmentPlacements: React.FC = () => {
     }
   };
 
+  const closeLetterPreview = () => {
+    if (letterPreviewUrl) URL.revokeObjectURL(letterPreviewUrl);
+    setLetterPreviewUrl("");
+    setLetterPreviewVisible(false);
+    setLetterPreviewLoading(false);
+  };
+
+  const handleViewAppointment = async (person: Personnel) => {
+    const submission = person.submissions[0];
+    const departmentId = person.department?.id;
+    if (!submission?.id || !departmentId) {
+      toast.error("Assign a department before viewing the appointment letter");
+      return;
+    }
+    if (letterPreviewUrl) URL.revokeObjectURL(letterPreviewUrl);
+    setLetterPreviewUrl("");
+    setLetterPreviewVisible(true);
+    setLetterPreviewLoading(true);
+    try {
+      const objectUrl = await fetchAppointmentLetterPreview(
+        submission.id,
+        departmentId,
+      );
+      setLetterPreviewUrl(objectUrl);
+    } catch (error: any) {
+      setLetterPreviewVisible(false);
+      toast.error(error.message || "Failed to load the appointment letter");
+    } finally {
+      setLetterPreviewLoading(false);
+    }
+  };
+
+  const openSendConfirm = (userIds: number[]) => {
+    if (userIds.length === 0) {
+      toast.error("Select at least one personnel");
+      return;
+    }
+    setSendTargetIds(userIds);
+    setSendConfirmVisible(true);
+  };
+
+  const handleSendAppointments = async () => {
+    if (sendTargetIds.length === 0) {
+      toast.error("Select at least one personnel");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch("/users/send-appointment-letters", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ userIds: sendTargetIds }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to send appointment letters");
+      }
+      if (data.skipped?.length) {
+        toast.warn(data.message);
+        data.skipped.forEach((item: string) => toast.warn(item));
+      } else {
+        toast.success(data.message || "Appointment letters sent");
+      }
+      setSendConfirmVisible(false);
+      setSendTargetIds([]);
+      setSelectedRows([]);
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send appointment letters");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle change department
   const handleChangeDepartment = async () => {
     if (!selectedDepartment) {
@@ -418,7 +506,6 @@ const DepartmentPlacements: React.FC = () => {
         setChangeDeptModalVisible(false);
         setSelectedDepartment(null);
         toast.success(data.message || "Department changed successfully");
-        window.location.reload();
       } else {
         toast.error(data.message || "Failed to change department");
       }
@@ -515,6 +602,44 @@ const DepartmentPlacements: React.FC = () => {
         </span>
       ),
     },
+    {
+      title: "Appointment",
+      key: "appointment",
+      width: 180,
+      render: (_: any, record: Personnel) => {
+        const hasLetter =
+          Boolean(record.submissions[0]?.jobConfirmationLetterUrl) ||
+          ["VALIDATED", "COMPLETED"].includes(
+            record.submissions[0]?.status || "",
+          );
+        return (
+          <Space>
+            <Button
+              type="text"
+              title="View appointment letter"
+              icon={<EyeOutlined />}
+              onClick={(event) => {
+                event.stopPropagation();
+                handleViewAppointment(record);
+              }}
+              disabled={!record.department?.id}
+            />
+            {isAdmin && hasLetter && (
+              <Button
+                type="link"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openSendConfirm([record.id]);
+                }}
+                disabled={!record.department?.id}
+              >
+                Resend
+              </Button>
+            )}
+          </Space>
+        );
+      },
+    },
   ];
 
   return (
@@ -545,6 +670,16 @@ const DepartmentPlacements: React.FC = () => {
                 >
                   Change Dept.
                 </Button>
+                {isAdmin && (
+                  <Button
+                    type="primary"
+                    icon={<MailOutlined />}
+                    onClick={() => openSendConfirm(selectedRows)}
+                    className="naspac-btn-primary"
+                  >
+                    Send appointment
+                  </Button>
+                )}
               </Space>
             )}
             <Select
@@ -780,6 +915,7 @@ const DepartmentPlacements: React.FC = () => {
           }}
           okText="Confirm"
           cancelText="Cancel"
+          confirmLoading={loading}
           okButtonProps={{
             className: "naspac-btn-primary",
             disabled: !selectedDepartment,
@@ -788,32 +924,66 @@ const DepartmentPlacements: React.FC = () => {
         >
           <div className="flex flex-col gap-4">
             <p>
-              Are you sure you want to change the department for{" "}
-              {selectedRows.length} personnel?
+              Change the department for {selectedRows.length} personnel? This
+              does not send appointment letters.
             </p>
-            <div className="flex justify-between items-center">
-              <div className="w-1/3">
-                <Select
-                  showSearch
-                  placeholder="Select a department"
-                  value={selectedDepartment}
-                  onChange={(value) => setSelectedDepartment(value)}
-                  filterOption={(input, option) =>
-                    (option?.children as unknown as string)
-                      ?.toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
-                  className="w-full"
-                >
-                  {departments.map((dept) => (
-                    <Option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-            </div>
+            <Select
+              showSearch
+              placeholder="Select a department"
+              value={selectedDepartment}
+              onChange={(value) => setSelectedDepartment(value)}
+              filterOption={(input, option) =>
+                (option?.children as unknown as string)
+                  ?.toLowerCase()
+                  .includes(input.toLowerCase())
+              }
+              className="w-full"
+            >
+              {departments.map((dept) => (
+                <Option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </Option>
+              ))}
+            </Select>
           </div>
+        </Modal>
+        <Modal
+          title="Appointment letter"
+          open={letterPreviewVisible}
+          onCancel={closeLetterPreview}
+          footer={null}
+          width={900}
+          destroyOnClose
+          maskClosable
+        >
+          {letterPreviewLoading && <p>Loading the appointment letter...</p>}
+          {letterPreviewUrl && (
+            <iframe
+              src={letterPreviewUrl}
+              title="Appointment letter"
+              style={{ width: "100%", height: "70vh", border: "none" }}
+            />
+          )}
+        </Modal>
+        <Modal
+          title="Send appointment letters"
+          open={sendConfirmVisible}
+          onOk={handleSendAppointments}
+          onCancel={() => {
+            setSendConfirmVisible(false);
+            setSendTargetIds([]);
+          }}
+          okText="Send appointment"
+          cancelText="Cancel"
+          confirmLoading={loading}
+          okButtonProps={{ className: "naspac-btn-primary" }}
+          cancelButtonProps={{ className: "naspac-btn-secondary" }}
+        >
+          <p>
+            Send appointment letters to {sendTargetIds.length} selected
+            personnel? Letters are emailed and saved for each person who has a
+            department and a verification form.
+          </p>
         </Modal>
       </div>
     </div>

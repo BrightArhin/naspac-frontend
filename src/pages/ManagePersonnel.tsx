@@ -345,7 +345,7 @@ const Endorsement: React.FC = () => {
     setValidateConfirmVisible(false);
   };
 
-  const handleValidate = async () => {
+  const handleAssignDepartment = async () => {
     if (!departmentPerson || !selectedDepartment) return;
     setLoading(true);
     try {
@@ -364,34 +364,12 @@ const Endorsement: React.FC = () => {
         const errorData = await assignResponse.json();
         throw new Error(errorData.message || "Failed to assign the department");
       }
-      const response = await fetch(
-        `/users/update-submission-status/${departmentPerson.id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({ status: "VALIDATED" }),
-        },
-      );
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Failed to send the appointment letter",
-        );
-      }
-      setSubmissions((prev) => prev.filter((s) => s.id !== departmentPerson.id));
-      setFilteredSubmissions((prev) =>
-        prev.filter((s) => s.id !== departmentPerson.id),
-      );
       setDepartmentPerson(null);
       setValidateConfirmVisible(false);
       setSelectedDepartment(null);
-      setValidatedCount((prev) => prev + 1);
-      toast.success("Appointment letter sent");
+      toast.success("Department assigned");
     } catch (error: any) {
-      toast.error(error.message || "Failed to send the appointment letter");
+      toast.error(error.message || "Failed to assign the department");
     } finally {
       setLoading(false);
     }
@@ -689,8 +667,7 @@ const Endorsement: React.FC = () => {
           footer={null}
         >
           <p className="mb-3">
-            Select the department. You will be asked to confirm before the
-            appointment letter is sent.
+            Select the department. This does not send the appointment letter.
           </p>
           <Select
             showSearch
@@ -709,22 +686,22 @@ const Endorsement: React.FC = () => {
           />
         </Modal>
         <Modal
-          title="Send the appointment letter"
+          title="Assign department"
           open={validateConfirmVisible}
-          onOk={handleValidate}
+          onOk={handleAssignDepartment}
           onCancel={() => {
             setValidateConfirmVisible(false);
             setSelectedDepartment(null);
           }}
-          okText="Yes, send it"
+          okText="Assign department"
           cancelText="Cancel"
           confirmLoading={loading}
           okButtonProps={{ className: "naspac-btn-primary" }}
           cancelButtonProps={{ className: "naspac-btn-secondary" }}
         >
           <p>
-            Validating will send the appointment letter to{" "}
-            {departmentPerson?.fullName}. Do you want to continue?
+            Assign {departmentPerson?.fullName} to this department? You can send
+            the appointment letter later from Dept. Placements.
           </p>
         </Modal>
         <Modal

@@ -53,3 +53,34 @@ export function resolveFileUrl(url: string) {
 
   return url;
 }
+
+export async function fetchAppointmentLetterPreview(
+  submissionId: number,
+  departmentId: number,
+) {
+  const response = await fetch("/users/preview-appointment-letter", {
+    method: "POST",
+    headers: {
+      Accept: "application/pdf",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({ submissionId, departmentId }),
+  });
+  if (!response.ok) {
+    let message = "Failed to load the appointment letter";
+    try {
+      const errorData = await response.json();
+      message = errorData.message || message;
+    } catch {
+      // The body is not JSON.
+    }
+    throw new Error(message);
+  }
+  const data = await response.arrayBuffer();
+  const header = String.fromCharCode(...new Uint8Array(data.slice(0, 4)));
+  if (header !== "%PDF") {
+    throw new Error("Failed to load the appointment letter");
+  }
+  return URL.createObjectURL(new Blob([data], { type: "application/pdf" }));
+}
