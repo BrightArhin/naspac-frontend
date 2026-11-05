@@ -22,12 +22,20 @@ import {
 import { toast } from "react-toastify";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { fetchAppointmentLetterPreview } from "../lib/api-config";
 import "../components/PersonnelSelection.css";
 
 const { Option } = Select;
 const { Text } = Typography;
+
+type AssignmentFilter = "all" | "assigned" | "unassigned";
+
+function parseAssignmentFilter(value: string | null): AssignmentFilter {
+  if (value === "assigned" || value === "unassigned") return value;
+  return "all";
+}
 const { TabPane } = Tabs;
 
 interface Department {
@@ -67,10 +75,14 @@ interface Supervisor {
 
 const DepartmentPlacements: React.FC = () => {
   const { role } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [filteredPersonnel, setFilteredPersonnel] = useState<Personnel[]>([]);
   const [personnel, setPersonnel] = useState<Personnel[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState<string>("All");
+  const [assignmentFilter, setAssignmentFilter] = useState<AssignmentFilter>(
+    () => parseAssignmentFilter(searchParams.get("assignment")),
+  );
   const [supervisors, setSupervisors] = useState<Supervisor[]>([]);
   const [loading, setLoading] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -91,6 +103,28 @@ const DepartmentPlacements: React.FC = () => {
     number | null
   >(null);
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    const nextAssignment = parseAssignmentFilter(searchParams.get("assignment"));
+    setAssignmentFilter(nextAssignment);
+    if (nextAssignment === "unassigned") {
+      setDepartmentFilter("All");
+    }
+  }, [searchParams]);
+
+  const handleAssignmentFilterChange = (value: AssignmentFilter) => {
+    setAssignmentFilter(value);
+    if (value === "unassigned") {
+      setDepartmentFilter("All");
+    }
+    const next = new URLSearchParams(searchParams);
+    if (value === "all") {
+      next.delete("assignment");
+    } else {
+      next.set("assignment", value);
+    }
+    setSearchParams(next, { replace: true });
+  };
 
   // Fetch departments, personnel, and supervisors
   useEffect(() => {
@@ -171,6 +205,11 @@ const DepartmentPlacements: React.FC = () => {
 
   useEffect(() => {
     let filtered = personnel;
+    if (assignmentFilter === "assigned") {
+      filtered = filtered.filter((p) => Boolean(p.department?.id));
+    } else if (assignmentFilter === "unassigned") {
+      filtered = filtered.filter((p) => !p.department?.id);
+    }
     if (departmentFilter !== "All") {
       filtered = filtered.filter(
         (p) => p.department?.name === departmentFilter,
@@ -187,7 +226,7 @@ const DepartmentPlacements: React.FC = () => {
     }
     setFilteredPersonnel(filtered);
     setSelectedRows([]);
-  }, [departmentFilter, searchTerm, personnel]);
+  }, [assignmentFilter, departmentFilter, searchTerm, personnel]);
 
   const handleSelectAll = () => {
     if (selectedRows.length === filteredPersonnel.length) {
@@ -649,7 +688,10 @@ const DepartmentPlacements: React.FC = () => {
           Department Placements
         </h2>
         <div className="flex flex-col sm:flex-row justify-between mb-3 gap-2">
-          <Space>
+          <Space wrap>
+            <Text className="text-base font-semibold text-[#5B3418] bg-amber-100 px-3 py-1 rounded-md">
+              Total: {filteredPersonnel.length}
+            </Text>
             {(role === "ADMIN" || role === "SUPERADMIN") && (
               <Button
                 type="primary"
@@ -683,12 +725,23 @@ const DepartmentPlacements: React.FC = () => {
               </Space>
             )}
             <Select
+              value={assignmentFilter}
+              onChange={handleAssignmentFilterChange}
+              className="rounded-md"
+              placeholder="Assignment"
+            >
+              <Option value="all">All placements</Option>
+              <Option value="assigned">Assigned</Option>
+              <Option value="unassigned">Unassigned</Option>
+            </Select>
+            <Select
               value={departmentFilter}
               onChange={setDepartmentFilter}
               className="dept-filter-select rounded-md"
               popupClassName="dept-filter-dropdown"
               popupMatchSelectWidth={false}
               placeholder="Filter by department"
+              disabled={assignmentFilter === "unassigned"}
             >
               <Option value="All">All</Option>
               {departments.map((dept) => (

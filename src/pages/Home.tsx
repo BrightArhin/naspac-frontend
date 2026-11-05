@@ -42,6 +42,8 @@ interface ReportCounts {
   personnelByDepartment: Department[];
   onboardedStudentCount: number;
   pendingCount: number;
+  assignedPersonnelCount: number;
+  unassignedPersonnelCount: number;
 }
 
 const Home: React.FC = () => {
@@ -243,16 +245,16 @@ const Home: React.FC = () => {
                 route: "/staff-management",
               },
               {
-                title: "Endorse",
-                value: reportData?.statusCounts.pendingEndorsement || 0,
+                title: "Personnel assigned",
+                value: reportData?.assignedPersonnelCount || 0,
                 icon: "/admin-hero-3.svg",
-                route: "/endorsement",
+                route: "/dept-placements?assignment=assigned",
               },
               {
-                title: "Departments",
-                value: reportData?.totalDepartments || 0,
+                title: "Unassigned",
+                value: reportData?.unassignedPersonnelCount || 0,
                 icon: "/admin-hero-4.svg",
-                route: "/dept-placements",
+                route: "/dept-placements?assignment=unassigned",
               },
             ]
           : [
