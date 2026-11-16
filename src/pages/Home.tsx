@@ -26,6 +26,12 @@ interface Department {
   personnelCount: number;
 }
 
+interface PlacementPersonnel {
+  department: {
+    id: number;
+  } | null;
+}
+
 interface ReportCounts {
   totalPersonnel: number;
   totalNonPersonnel: number;
@@ -50,6 +56,10 @@ const Home: React.FC = () => {
   const { role, name, isLoading: authLoading, userId } = useAuth();
   const navigate = useNavigate();
   const [reportData, setReportData] = useState<ReportCounts | null>(null);
+  const [placementCounts, setPlacementCounts] = useState<{
+    assigned: number;
+    unassigned: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(
     null,
@@ -103,6 +113,37 @@ const Home: React.FC = () => {
     };
     fetchReportCounts();
   }, []);
+
+  useEffect(() => {
+    const fetchPlacementCounts = async () => {
+      try {
+        const personnelResponse = await axios.post<PlacementPersonnel[]>(
+          "/users/personnel",
+          {
+            statuses: [
+              "PENDING_ENDORSEMENT",
+              "ENDORSED",
+              "VALIDATED",
+              "COMPLETED",
+            ],
+          },
+        );
+        const assigned = personnelResponse.data.filter((p) =>
+          Boolean(p.department?.id),
+        ).length;
+        setPlacementCounts({
+          assigned,
+          unassigned: personnelResponse.data.length - assigned,
+        });
+      } catch (error) {
+        setPlacementCounts(null);
+      }
+    };
+
+    if (role === "ADMIN" || role === "SUPERADMIN") {
+      fetchPlacementCounts();
+    }
+  }, [role]);
 
   // Fetch personnel status
   useEffect(() => {
@@ -220,6 +261,11 @@ const Home: React.FC = () => {
     }
   };
 
+  const assignedPersonnelCount =
+    placementCounts?.assigned ?? reportData?.assignedPersonnelCount ?? 0;
+  const unassignedPersonnelCount =
+    placementCounts?.unassigned ?? reportData?.unassignedPersonnelCount ?? 0;
+
   // Role-based dashboard content
   const renderDashboardContent = () => {
     if (role === "ADMIN" || role === "SUPERADMIN" || role === "STAFF") {
@@ -246,13 +292,13 @@ const Home: React.FC = () => {
               },
               {
                 title: "Personnel assigned",
-                value: reportData?.assignedPersonnelCount || 0,
+                value: assignedPersonnelCount,
                 icon: "/admin-hero-3.svg",
                 route: "/dept-placements?assignment=assigned",
               },
               {
                 title: "Unassigned",
-                value: reportData?.unassignedPersonnelCount || 0,
+                value: unassignedPersonnelCount,
                 icon: "/admin-hero-4.svg",
                 route: "/dept-placements?assignment=unassigned",
               },
